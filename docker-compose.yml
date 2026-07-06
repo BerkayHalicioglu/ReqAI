@@ -1,0 +1,16 @@
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: reqai_postgres
+    environment:
+      POSTGRES_USER: reqai_user
+      POSTGRES_PASSWORD: reqai_password
+      POSTGRES_DB: reqai_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

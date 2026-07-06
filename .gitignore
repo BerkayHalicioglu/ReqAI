@@ -1,0 +1,46 @@
+# Virtual environment
+backend/venv/
+venv/
+.venv/
+env/
+psycopg2-binary/
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+
+# Node modules & Angular
+node_modules/
+frontend/node_modules/
+.angular/
+frontend/.angular/
+
+# IDE files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Python cache & compiled files
+__pycache__/
+backend/app/__pycache__/
+backend/app/core/__pycache__/
+backend/app/models/__pycache__/
+backend/app/routers/__pycache__/
+backend/app/schemas/__pycache__/
+backend/app/services/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Local databases & uploads
+*.db
+backend/*.db
+backend/uploads/*
+!backend/uploads/.gitkeep
+uploads/

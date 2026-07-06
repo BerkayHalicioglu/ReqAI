@@ -1,0 +1,78 @@
+Customer Requirement Document
+Customer Self-Service Portal Improvements
+Background
+
+Our company would like to improve the existing Customer Self-Service Portal to provide a better digital experience for customers. The current portal allows customers to log in and view limited information about their accounts, but many important operations still require contacting customer support.
+
+The objective of this initiative is to reduce customer service workload by allowing customers to perform common operations directly through the portal.
+
+Business Requirements
+User Authentication
+
+Customers should be able to securely access the portal using their email address and password.
+
+If a customer forgets their password, they should be able to request a password reset link through email.
+
+New customers should also be able to create an account using their personal information and verify their email address before accessing the system.
+
+Product Catalog
+
+Customers should be able to browse all available products.
+
+The product list should include basic product information such as product name, description, monthly price and available campaigns.
+
+Customers should also be able to search products by name and filter them by category.
+
+Shopping Cart
+
+Customers should be able to add products into a shopping cart before purchasing them.
+
+The shopping cart should allow customers to:
+- update product quantities
+- remove products
+- clear the entire cart
+- display the total price
+
+Order Management
+
+Customers should be able to place an order using the products currently available in their shopping cart.
+
+After an order is successfully created, the customer should receive an order confirmation screen.
+
+Customers should also be able to view all previous orders together with their current order status.
+
+Payment
+
+Customers should be able to complete payment using either a credit card or a debit card.
+
+The system should validate payment information before processing the payment.
+
+If payment fails, the customer should receive a meaningful error message.
+
+Notifications
+
+Customers should receive email notifications when:
+- a new account is created
+- an order is placed
+- payment is completed
+- password is reset
+
+Customer Profile
+
+Customers should be able to update their personal information.
+
+They should also be able to change their password and manage their communication preferences.
+
+General Expectations
+
+The application should provide a responsive user interface.
+
+Input validation should be performed before submitting any request.
+
+Meaningful error messages should always be displayed.
+
+All operations should be logged for audit purposes.
+
+Expected Outcome
+
+The system should provide a simple, secure and user-friendly experience while allowing customers to perform common self-service operations without contacting customer support.
