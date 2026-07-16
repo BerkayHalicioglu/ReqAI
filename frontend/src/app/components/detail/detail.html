@@ -1,0 +1,144 @@
+<div class="detail-wrapper">
+  <!-- Geri Dönüş Butonu -->
+  <nav class="detail-navigation">
+    <a [routerLink]="['/']" mat-button class="back-btn-m">
+      <span class="material-icons">arrow_back</span> Back to Dashboard
+    </a>
+  </nav>
+
+  @if (isLoading()) {
+    <div class="detail-loading-state">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Loading document analysis...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (document()) {
+    <!-- Doküman Bilgi Kartı -->
+    <mat-card class="document-info-card glassmorphic">
+      <mat-card-content class="doc-info-content">
+        <div class="doc-icon-circle">
+          <span class="material-icons">description</span>
+        </div>
+        <div class="doc-title-info">
+          <h1>{{ document().filename }}</h1>
+          <div class="doc-metadata">
+            <span class="meta-item">
+              <span class="material-icons">calendar_today</span>
+              {{ document().created_at | date:'dd MMM yyyy, HH:mm' }}
+            </span>
+            <span class="divider-dot"></span>
+            <span class="status-indicator" [class]="document().status.toLowerCase()">
+              <span class="indicator-dot"></span>
+              {{ document().status }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Yan Yana Çift Panel (Split Screen Layout) -->
+    <div class="split-layout">
+      <!-- SOL PANEL: Orijinal İçerik -->
+      <mat-card class="raw-content-card glassmorphic">
+        <div class="panel-header">
+          <span class="material-icons header-icon">notes</span>
+          <h3>Original Document Content</h3>
+        </div>
+        <mat-card-content class="raw-content-body">
+          <pre class="raw-pre">{{ document().content }}</pre>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- SAĞ PANEL: AI Analiz Çıktıları -->
+      <mat-card class="analysis-results-card glassmorphic">
+        <div class="panel-header">
+          <span class="material-icons header-icon">psychology</span>
+          <h3>Decomposed AI Requirements</h3>
+        </div>
+        
+        <mat-card-content class="analysis-accordion-wrapper">
+          <mat-accordion multi="false" class="material-accordion">
+            @for (req of document().requirements; track req.id) {
+              <mat-expansion-panel 
+                [expanded]="activeRequirementId() === req.id"
+                (opened)="activeRequirementId.set(req.id)"
+                (closed)="activeRequirementId() === req.id ? activeRequirementId.set(null) : null"
+                class="req-expansion-panel"
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="panel-title-area">
+                    <span class="req-id-badge">REQ-{{ req.id }}</span>
+                    <span class="req-title-text">{{ req.title }}</span>
+                  </mat-panel-title>
+                  <mat-panel-description class="panel-description-area">
+                    <span class="badge priority-badge" [class]="req.priority.toLowerCase()">
+                      {{ req.priority }}
+                    </span>
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <!-- Panel İçeriği -->
+                <div class="panel-inner-content">
+                  <p class="req-description-para">{{ req.description }}</p>
+                  
+                  <mat-divider class="inner-divider"></mat-divider>
+
+                  <!-- Alt İşler ve Görevler -->
+                  <div class="tasks-section">
+                    <h4><span class="material-icons section-icon">settings</span> Developer Task List</h4>
+                    
+                    @for (task of req.tasks; track task.id) {
+                      <div class="developer-task-card">
+                        <div class="task-card-header">
+                          <span class="task-headline">
+                            <strong>Task {{ req.id }}.{{ task.id }}:</strong> {{ task.title }}
+                          </span>
+                          <div class="task-badges">
+                            <span class="badge priority-badge" [class]="task.priority.toLowerCase()">
+                              {{ task.priority }}
+                            </span>
+                            <span class="badge complexity-badge" [class]="task.complexity.toLowerCase()">
+                              {{ task.complexity }}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <p class="task-body-desc">{{ task.description }}</p>
+
+                        <!-- Kabul Kriterleri (Test Senaryoları) -->
+                        <div class="test-scenarios-box">
+                          <h5><span class="material-icons scenario-icon">done_all</span> Acceptance Criteria</h5>
+                          @for (scenario of task.test_scenarios; track scenario.id) {
+                            <div class="scenario-checkbox-row">
+                              <input type="checkbox" [id]="'test-m-' + req.id + '-' + task.id + '-' + scenario.id" />
+                              <label [for]="'test-m-' + req.id + '-' + task.id + '-' + scenario.id">
+                                <strong>Expected Result:</strong> {{ scenario.expected_result }}
+                              </label>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    } @empty {
+                      <div class="empty-tasks-state">
+                        <p>No developers tasks generated for this requirement.</p>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </mat-expansion-panel>
+            } @empty {
+              <div class="empty-accordion-state">
+                <span class="material-icons empty-acc-icon">warning</span>
+                <p>No requirements decomposed in this document.</p>
+              </div>
+            }
+          </mat-accordion>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>
