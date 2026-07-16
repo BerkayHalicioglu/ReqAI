@@ -1,0 +1,202 @@
+<div class="dashboard-wrapper">
+  <!-- Header Section -->
+  <header class="dashboard-header">
+    <div class="header-title">
+      <h1>Dashboard</h1>
+      <p class="subtitle">Requirement Decomposition & AI Analysis Control Panel</p>
+    </div>
+  </header>
+
+  <!-- KPI Cards Section -->
+  <section class="kpi-grid">
+    <mat-card class="kpi-card glassmorphic">
+      <mat-card-content class="kpi-content">
+        <div class="kpi-info">
+          <span class="kpi-label">Total Documents</span>
+          <h2 class="kpi-value">{{ totalDocuments() }}</h2>
+        </div>
+        <div class="kpi-icon-wrapper blue">
+          <span class="material-icons">folder</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card glassmorphic">
+      <mat-card-content class="kpi-content">
+        <div class="kpi-info">
+          <span class="kpi-label">Total Requirements</span>
+          <h2 class="kpi-value">{{ totalRequirements() }}</h2>
+        </div>
+        <div class="kpi-icon-wrapper indigo">
+          <span class="material-icons">assignment</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card glassmorphic">
+      <mat-card-content class="kpi-content">
+        <div class="kpi-info">
+          <span class="kpi-label">Critical & High Priority</span>
+          <h2 class="kpi-value">{{ criticalRequirements() }}</h2>
+        </div>
+        <div class="kpi-icon-wrapper red">
+          <span class="material-icons">priority_high</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card glassmorphic">
+      <mat-card-content class="kpi-content">
+        <div class="kpi-info">
+          <span class="kpi-label">Derived Developer Tasks</span>
+          <h2 class="kpi-value">{{ totalTasks() }}</h2>
+        </div>
+        <div class="kpi-icon-wrapper green">
+          <span class="material-icons">build</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <!-- Error Banner -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <p>{{ errorMessage() }}</p>
+      <button mat-icon-button class="close-btn" (click)="errorMessage.set(null)">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- Main Card Section (Upload + Table) -->
+  <div class="main-card-layout">
+    <!-- Left: Upload Zone -->
+    <mat-card class="upload-zone-card glassmorphic">
+      <mat-card-content class="upload-card-content">
+        <div 
+          class="drop-zone"
+          [class.drag-over]="isDragOver()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onFileDropped($event)"
+        >
+          <div class="drop-zone-content">
+            <div class="icon-circle">
+              @if (isUploading()) {
+                <mat-spinner diameter="40"></mat-spinner>
+              } @else if (isAnalyzing()) {
+                <div class="brain-icon pulse">🧠</div>
+              } @else {
+                <span class="material-icons upload-icon">cloud_upload</span>
+              }
+            </div>
+
+            @if (isUploading()) {
+              <h3>Uploading Document...</h3>
+              <p>Saving document to database server.</p>
+            } @else if (isAnalyzing()) {
+              <h3>AI Decomposing Requirements...</h3>
+              <p>Analyzing context and generating structured models.</p>
+              <mat-progress-bar mode="indeterminate" class="analysis-progress"></mat-progress-bar>
+            } @else {
+              <h3>Upload Requirement Document</h3>
+              <p>Drag and drop a <strong>.txt</strong> file here, or browse files manually.</p>
+              
+              <button mat-flat-button color="primary" class="browse-btn" (click)="fileInput.click()">
+                Browse Files
+              </button>
+              <input type="file" #fileInput accept=".txt" (change)="onFileSelected($event)" style="display: none;" />
+            }
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Right: Analysis History Table -->
+    <mat-card class="history-table-card glassmorphic">
+      <mat-card-header class="table-header">
+        <mat-card-title>📋 Analysis History</mat-card-title>
+        <span class="table-subtitle">{{ documents().length }} Documents in Repository</span>
+      </mat-card-header>
+      
+      <mat-card-content class="table-content-wrapper">
+        <div class="table-responsive">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Document Name</th>
+                <th>Uploaded At</th>
+                <th>Decomposition Status</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (doc of paginatedDocuments(); track doc.id) {
+                <tr class="table-row">
+                  <td class="filename-cell">
+                    <span class="material-icons file-lead-icon">description</span>
+                    <span class="file-name">{{ doc.filename }}</span>
+                  </td>
+                  <td class="date-cell">{{ doc.created_at | date:'dd MMM yyyy, HH:mm' }}</td>
+                  <td>
+                    <span class="status-indicator" [class]="doc.status.toLowerCase()">
+                      <span class="indicator-dot"></span>
+                      {{ doc.status }}
+                    </span>
+                  </td>
+                  <td style="text-align: right;">
+                    @if (doc.status === 'ANALYZED') {
+                      <a [routerLink]="['/document', doc.id]" mat-stroked-button color="primary" class="row-action-btn">
+                        View Results <span class="material-icons">arrow_forward</span>
+                      </a>
+                    } @else if (doc.status === 'ANALYZING') {
+                      <button mat-button disabled class="row-action-btn loading">
+                        <mat-spinner diameter="18" class="row-spinner"></mat-spinner> Decomposing...
+                      </button>
+                    } @else {
+                      <button mat-flat-button color="accent" class="row-action-btn" (click)="startAnalysis(doc.id)">
+                        Analyze Now
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="empty-table-state">
+                    <span class="material-icons empty-icon">assignment_late</span>
+                    <p>No requirement documents analyzed yet. Drop a document on the left to begin.</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        @if (totalPages() > 1) {
+          <div class="pagination-wrapper">
+            <button mat-icon-button [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+              <span class="material-icons">chevron_left</span>
+            </button>
+            
+            <div class="page-numbers">
+              @for (page of pagesArray(); track page) {
+                <button mat-flat-button 
+                        (click)="setPage(page)"
+                        [class.active-page]="currentPage() === page"
+                        class="page-btn">
+                  {{ page }}
+                </button>
+              }
+            </div>
+
+            <button mat-icon-button [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

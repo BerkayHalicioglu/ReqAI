@@ -1,16 +1,29 @@
-<div style="max-width: 800px; margin: 4rem auto; padding: 2rem; font-family: 'Outfit', sans-serif; text-align: center; color: #1e293b;">
-  <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
-  <h1 style="font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0;">Welcome to ReqAI Frontend</h1>
-  <p style="font-size: 1.1rem; color: #64748b; line-height: 1.6; margin: 0 0 2rem 0;">
-    This is the clean starter template representing the start of <strong>Week 3</strong>. 
-    Begin implementing your custom services, routing, file upload forms, and requirement breakdown views here!
-  </p>
-  <div style="background-color: #f1f5f9; border-radius: 8px; padding: 1.25rem; font-size: 0.95rem; font-family: monospace; display: inline-block; text-align: left;">
-    <strong>Next steps:</strong><br/>
-    1. Define models under <code style="color: #6366f1;">src/app/models/</code><br/>
-    2. Create DocumentService under <code style="color: #6366f1;">src/app/services/</code><br/>
-    3. Build dashboard and analysis views under <code style="color: #6366f1;">src/app/components/</code>
-  </div>
-</div>
+<div class="app-layout">
+  <aside class="app-sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">⚡</span>
+      <h2>ReqAI</h2>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+        <span class="material-icons">dashboard</span>
+        <span>Dashboard</span>
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="footer-user">
+        <div class="user-avatar">AD</div>
+        <div class="user-info">
+          <span class="user-name">Advisor Demo</span>
+          <span class="user-role">Reviewer Mode</span>
+        </div>
+      </div>
+    </div>
+  </aside>
 
-<router-outlet></router-outlet>
+  <main class="app-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
