@@ -1,18 +1,24 @@
 from sqlalchemy.orm import Session
 
+from app.database import SessionLocal
 from app.models.entities import Document, Requirement, Task, TestScenario, DocumentStatus
 from app.services.ai_service import get_ai_service
 
 
-def run_analysis(db: Session, document: Document) -> Document:
+def run_analysis_background(document_id: str):
     """
-    Sends the document content to the AI service, then persists the
-    resulting Requirement -> Task -> TestScenario tree, linked to the document.
+    Background worker function for asynchronous AI requirement analysis.
+    Uses an isolated DB session so it can run safely inside FastAPI BackgroundTasks.
     """
-    document.status = DocumentStatus.PROCESSING
-    db.commit()
-
+    db = SessionLocal()
     try:
+        document = db.query(Document).filter(Document.id == document_id).first()
+        if not document:
+            return
+
+        document.status = DocumentStatus.PROCESSING
+        db.commit()
+
         ai_service = get_ai_service()
         result = ai_service.analyze(document.content)
 
@@ -24,7 +30,7 @@ def run_analysis(db: Session, document: Document) -> Document:
                 priority=req_data.get("priority", "MEDIUM"),
             )
             db.add(requirement)
-            db.flush()  # get requirement.id before adding tasks
+            db.flush()
 
             for task_data in req_data.get("tasks", []):
                 task = Task(
@@ -35,7 +41,7 @@ def run_analysis(db: Session, document: Document) -> Document:
                     complexity=task_data.get("complexity", "MODERATE"),
                 )
                 db.add(task)
-                db.flush()  # get task.id before adding test scenarios
+                db.flush()
 
                 for ts_data in task_data.get("test_scenarios", []):
                     test_scenario = TestScenario(
@@ -48,10 +54,23 @@ def run_analysis(db: Session, document: Document) -> Document:
 
         document.status = DocumentStatus.ANALYZED
         db.commit()
-        db.refresh(document)
-        return document
 
-    except Exception:
-        document.status = DocumentStatus.FAILED
-        db.commit()
-        raise
+    except Exception as e:
+        print(f"Background AI analysis error for document {document_id}: {e}")
+        db.rollback()
+        try:
+            doc = db.query(Document).filter(Document.id == document_id).first()
+            if doc:
+                doc.status = DocumentStatus.FAILED
+                db.commit()
+        except Exception:
+            pass
+    finally:
+        db.close()
+
+
+def run_analysis(db: Session, document: Document) -> Document:
+    """Synchronous fallback for analysis."""
+    run_analysis_background(document.id)
+    db.refresh(document)
+    return document

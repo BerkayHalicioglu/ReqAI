@@ -2,14 +2,14 @@
   <!-- Geri Dönüş Butonu -->
   <nav class="detail-navigation">
     <a [routerLink]="['/']" mat-button class="back-btn-m">
-      <span class="material-icons">arrow_back</span> Back to Dashboard
+      <span class="material-icons">arrow_back</span> {{ ts.t('common.backToDashboard') }}
     </a>
   </nav>
 
   @if (isLoading()) {
     <div class="detail-loading-state">
       <mat-spinner diameter="48"></mat-spinner>
-      <p>Loading document analysis...</p>
+      <p>{{ ts.t('common.loading') }}</p>
     </div>
   } @else if (errorMessage()) {
     <div class="error-banner">
@@ -28,7 +28,7 @@
           <div class="doc-metadata">
             <span class="meta-item">
               <span class="material-icons">calendar_today</span>
-              {{ document().created_at | date:'dd MMM yyyy, HH:mm' }}
+              {{ document().uploaded_at | date:'dd MMM yyyy, HH:mm' }}
             </span>
             <span class="divider-dot"></span>
             <span class="status-indicator" [class]="document().status.toLowerCase()">
@@ -40,69 +40,212 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- Kabul Kriterleri Doğrulama ve Test İlerlemesi (Test Progress Card) -->
+    @if (totalTestScenariosCount() > 0) {
+      <mat-card class="test-progress-summary-card glassmorphic">
+        <mat-card-content class="test-progress-content">
+          <div class="progress-details">
+            <div class="progress-label-row">
+              <span class="main-label">
+                <span class="material-icons info-icon">analytics</span>
+                <strong>{{ ts.currentLang() === 'tr' ? 'Kabul Kriterleri Test Doğrulama Durumu:' : 'Acceptance Criteria Test Verification Status:' }}</strong>
+              </span>
+              <span class="progress-percentage-stats">
+                <span class="stat-badge passed clickable" 
+                      [class.active]="selectedTestFilter() === 'PASSED'" 
+                      (click)="toggleTestFilter('PASSED')"
+                      [title]="ts.currentLang() === 'tr' ? 'Geçen Testleri Filtrele' : 'Filter Passed Tests'">
+                  {{ passedTestScenariosCount() }} {{ ts.currentLang() === 'tr' ? 'Geçti' : 'Passed' }}
+                </span>
+                @if (failedTestScenariosCount() > 0) {
+                  <span class="stat-badge failed clickable" 
+                        [class.active]="selectedTestFilter() === 'FAILED'" 
+                        (click)="toggleTestFilter('FAILED')"
+                        [title]="ts.currentLang() === 'tr' ? 'Kalan Testleri Filtrele' : 'Filter Failed Tests'">
+                    {{ failedTestScenariosCount() }} {{ ts.currentLang() === 'tr' ? 'Kaldı' : 'Failed' }}
+                  </span>
+                }
+                <span class="stat-badge total clickable" 
+                      [class.active]="selectedTestFilter() === 'ALL'" 
+                      (click)="toggleTestFilter('ALL')"
+                      [title]="ts.currentLang() === 'tr' ? 'Tüm Testleri Göster' : 'Show All Tests'">
+                  {{ totalTestScenariosCount() }} {{ ts.currentLang() === 'tr' ? 'Toplam' : 'Total' }}
+                </span>
+                <span class="stat-percent">%{{ testProgressPercentage() }} {{ ts.currentLang() === 'tr' ? 'Doğrulandı' : 'Verified' }}</span>
+              </span>
+            </div>
+            <div class="global-test-progress-track">
+              <div class="global-test-progress-fill" [style.width.%]="testProgressPercentage()"></div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
     <!-- Yan Yana Çift Panel (Split Screen Layout) -->
-    <div class="split-layout">
+    <div class="split-layout" [style.grid-template-columns]="leftPanelWidthPercent() + '% 14px 1fr'">
       <!-- SOL PANEL: Orijinal İçerik -->
       <mat-card class="raw-content-card glassmorphic">
         <div class="panel-header">
           <span class="material-icons header-icon">notes</span>
-          <h3>Original Document Content</h3>
+          <h3>{{ ts.t('detail.originalContent') }}</h3>
         </div>
         <mat-card-content class="raw-content-body">
           <pre class="raw-pre">{{ document().content }}</pre>
         </mat-card-content>
       </mat-card>
 
+      <!-- RESIZABLE DIVIDER HANDLE -->
+      <div class="split-divider" (mousedown)="startSplitResize($event)" [class.is-resizing]="isResizingSplit()" title="Tıkla ve Sürükle (Panelleri Genişlet)">
+        <div class="divider-handle">
+          <span class="material-icons">drag_indicator</span>
+        </div>
+      </div>
+
       <!-- SAĞ PANEL: AI Analiz Çıktıları -->
       <mat-card class="analysis-results-card glassmorphic">
-        <div class="panel-header">
+        <div class="panel-header header-with-actions">
           <span class="material-icons header-icon">psychology</span>
-          <h3>Decomposed AI Requirements</h3>
+          <h3>{{ ts.t('detail.decomposedReqs') }}</h3>
+          <div class="header-actions">
+            <!-- İndirme Kabı (Download Container) -->
+            <div class="download-container">
+              <!-- Popout Seçenekleri (Excel & Markdown) -->
+              <div class="download-options-popout" [class.show]="showDownloadOptions()">
+                <button mat-mini-fab (click)="exportToJiraCsv(); toggleDownloadOptions()" class="popout-btn excel-btn" [title]="ts.currentLang() === 'tr' ? 'Excel (CSV) Tablosu' : 'Excel (CSV) Table'">
+                  <span class="material-icons">table_view</span>
+                </button>
+                <button mat-mini-fab (click)="exportToMarkdown(); toggleDownloadOptions()" class="popout-btn markdown-btn" [title]="ts.currentLang() === 'tr' ? 'Markdown (.md) Raporu' : 'Markdown (.md) Report'">
+                  <span class="material-icons">article</span>
+                </button>
+              </div>
+
+              <!-- Ana İndirme Butonu -->
+              <button mat-icon-button (click)="toggleDownloadOptions()" [class.active]="showDownloadOptions()" [title]="ts.currentLang() === 'tr' ? 'Dışa Aktar' : 'Export'" class="export-btn">
+                <span class="material-icons">download</span>
+              </button>
+            </div>
+
+            <!-- Yazdır Butonu -->
+            <button mat-icon-button (click)="exportToPdf()" [title]="ts.currentLang() === 'tr' ? 'PDF / Yazıcı Raporu' : 'PDF / Print Report'" class="export-btn">
+              <span class="material-icons">print</span>
+            </button>
+          </div>
         </div>
         
         <mat-card-content class="analysis-accordion-wrapper">
-          <mat-accordion multi="false" class="material-accordion">
-            @for (req of document().requirements; track req.id) {
+          <!-- Priority Filter Bar -->
+          <div class="priority-filter-bar">
+            <button class="filter-pill all" 
+                    [class.active]="selectedPriorityFilter() === 'ALL'" 
+                    (click)="selectedPriorityFilter.set('ALL')">
+              {{ ts.t('detail.all') }} ({{ getPriorityCount('ALL') }})
+            </button>
+            <button class="filter-pill critical" 
+                    [class.active]="selectedPriorityFilter() === 'CRITICAL'" 
+                    (click)="selectedPriorityFilter.set('CRITICAL')">
+              {{ ts.t('detail.critical') }} ({{ getPriorityCount('CRITICAL') }})
+            </button>
+            <button class="filter-pill high" 
+                    [class.active]="selectedPriorityFilter() === 'HIGH'" 
+                    (click)="selectedPriorityFilter.set('HIGH')">
+              {{ ts.t('detail.high') }} ({{ getPriorityCount('HIGH') }})
+            </button>
+            <button class="filter-pill medium" 
+                    [class.active]="selectedPriorityFilter() === 'MEDIUM'" 
+                    (click)="selectedPriorityFilter.set('MEDIUM')">
+              {{ ts.t('detail.medium') }} ({{ getPriorityCount('MEDIUM') }})
+            </button>
+            <button class="filter-pill low" 
+                    [class.active]="selectedPriorityFilter() === 'LOW'" 
+                    (click)="selectedPriorityFilter.set('LOW')">
+              {{ ts.t('detail.low') }} ({{ getPriorityCount('LOW') }})
+            </button>
+          </div>
+
+          <mat-accordion [multi]="selectedTestFilter() !== 'ALL'" class="material-accordion">
+            @for (req of filteredRequirements(); track req.id) {
               <mat-expansion-panel 
-                [expanded]="activeRequirementId() === req.id"
-                (opened)="activeRequirementId.set(req.id)"
+                [expanded]="selectedTestFilter() !== 'ALL' || activeRequirementId() === req.id"
+                (opened)="scrollToAndHighlightRawText(req)"
                 (closed)="activeRequirementId() === req.id ? activeRequirementId.set(null) : null"
                 class="req-expansion-panel"
               >
                 <mat-expansion-panel-header>
                   <mat-panel-title class="panel-title-area">
-                    <span class="req-id-badge">REQ-{{ req.id }}</span>
+                    <span class="req-id-badge">REQ-{{ req.displayIndex }}</span>
                     <span class="req-title-text">{{ req.title }}</span>
                   </mat-panel-title>
                   <mat-panel-description class="panel-description-area">
                     <span class="badge priority-badge" [class]="req.priority.toLowerCase()">
-                      {{ req.priority }}
+                      {{ ts.t('detail.' + req.priority.toLowerCase()) }}
                     </span>
                   </mat-panel-description>
                 </mat-expansion-panel-header>
 
                 <!-- Panel İçeriği -->
                 <div class="panel-inner-content">
-                  <p class="req-description-para">{{ req.description }}</p>
+                  @if (editingRequirementId() !== req.id) {
+                    <div class="view-req-block">
+                      <div class="role-tag-container">
+                        <span class="role-tag ba">
+                          <span class="material-icons">assignment_ind</span> {{ ts.currentLang() === 'tr' ? 'Ürün Sahibi / İş Analisti' : 'Product Owner / Business Analyst' }}
+                        </span>
+                      </div>
+                      <p class="req-description-para">{{ req.description }}</p>
+                      <button mat-stroked-button (click)="startEdit(req)" class="edit-req-btn">
+                        <span class="material-icons">edit</span> {{ ts.t('detail.editRequirement') }}
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="edit-req-block">
+                      <div class="edit-field">
+                        <label class="edit-label">{{ ts.t('detail.editTitle') }}</label>
+                        <input type="text" [value]="editTitle()" (input)="onTitleInput($event)" class="edit-input" />
+                      </div>
+                      <div class="edit-field">
+                        <label class="edit-label">{{ ts.t('detail.editDesc') }}</label>
+                        <textarea [value]="editDescription()" (input)="onDescriptionInput($event)" class="edit-textarea" rows="3"></textarea>
+                      </div>
+                      <div class="edit-field">
+                        <label class="edit-label">{{ ts.t('detail.editPriority') }}</label>
+                        <select [value]="editPriority()" (change)="onPrioritySelect($event)" class="edit-select">
+                          <option value="LOW">{{ ts.t('detail.low') }}</option>
+                          <option value="MEDIUM">{{ ts.t('detail.medium') }}</option>
+                          <option value="HIGH">{{ ts.t('detail.high') }}</option>
+                          <option value="CRITICAL">{{ ts.t('detail.critical') }}</option>
+                        </select>
+                      </div>
+                      <div class="edit-actions">
+                        <button mat-flat-button color="primary" (click)="saveEdit(req.id)" class="save-btn">{{ ts.t('common.save') }}</button>
+                        <button mat-stroked-button (click)="cancelEdit()" class="cancel-btn">{{ ts.t('common.cancel') }}</button>
+                      </div>
+                    </div>
+                  }
                   
                   <mat-divider class="inner-divider"></mat-divider>
 
                   <!-- Alt İşler ve Görevler -->
                   <div class="tasks-section">
-                    <h4><span class="material-icons section-icon">settings</span> Developer Task List</h4>
+                    <div class="section-title-with-role">
+                      <h4><span class="material-icons section-icon">settings</span> {{ ts.t('detail.devTaskList') }}</h4>
+                      <span class="role-tag developer">
+                        <span class="material-icons">terminal</span> {{ ts.currentLang() === 'tr' ? 'Yazılımcı / Developer' : 'Developer' }}
+                      </span>
+                    </div>
                     
                     @for (task of req.tasks; track task.id) {
                       <div class="developer-task-card">
                         <div class="task-card-header">
                           <span class="task-headline">
-                            <strong>Task {{ req.id }}.{{ task.id }}:</strong> {{ task.title }}
+                            <strong>Task {{ req.displayIndex }}.{{ task.displayIndex }}:</strong> {{ task.title }}
                           </span>
                           <div class="task-badges">
                             <span class="badge priority-badge" [class]="task.priority.toLowerCase()">
-                              {{ task.priority }}
+                              {{ ts.t('detail.' + task.priority.toLowerCase()) }}
                             </span>
                             <span class="badge complexity-badge" [class]="task.complexity.toLowerCase()">
-                              {{ task.complexity }}
+                              {{ ts.t('detail.' + task.complexity.toLowerCase()) }}
                             </span>
                           </div>
                         </div>
@@ -111,34 +254,230 @@
 
                         <!-- Kabul Kriterleri (Test Senaryoları) -->
                         <div class="test-scenarios-box">
-                          <h5><span class="material-icons scenario-icon">done_all</span> Acceptance Criteria</h5>
+                          <div class="section-title-with-role">
+                            <h5><span class="material-icons scenario-icon">done_all</span> {{ ts.t('detail.acceptanceCriteria') }}</h5>
+                            <span class="role-tag qa">
+                              <span class="material-icons">fact_check</span> {{ ts.currentLang() === 'tr' ? 'Test / QA' : 'Test / QA' }}
+                            </span>
+                          </div>
                           @for (scenario of task.test_scenarios; track scenario.id) {
-                            <div class="scenario-checkbox-row">
-                              <input type="checkbox" [id]="'test-m-' + req.id + '-' + task.id + '-' + scenario.id" />
-                              <label [for]="'test-m-' + req.id + '-' + task.id + '-' + scenario.id">
-                                <strong>Expected Result:</strong> {{ scenario.expected_result }}
-                              </label>
+                            <div class="scenario-workflow-row" (click)="activeEditingScenarioId() === scenario.id ? cancelScenarioEdit() : startEditingScenario(scenario.id)" style="cursor: pointer;">
+                              <div class="scenario-top-line">
+                                <div class="scenario-status-info">
+                                  <!-- Status Indicator -->
+                                  <span class="status-indicator-tag" [class]="getScenarioStatus(scenario.id).toLowerCase()">
+                                    <span class="material-icons">
+                                      {{ getScenarioStatus(scenario.id) === 'PASSED' ? 'check_circle' : (getScenarioStatus(scenario.id) === 'PENDING' ? 'hourglass_empty' : 'cancel') }}
+                                    </span>
+                                    {{ ts.t('monitor.' + getScenarioStatus(scenario.id).toLowerCase()) }}
+                                  </span>
+
+                                  <!-- Evidence tag if attached -->
+                                  <a [href]="getEvidenceUrl(getScenarioEvidence(scenario.id)!)" target="_blank" class="evidence-tag-badge clickable" *ngIf="getScenarioEvidence(scenario.id)">
+                                    <span class="material-icons">attach_file</span> {{ getScenarioEvidence(scenario.id) }}
+                                  </a>
+                                </div>
+                              </div>
+
+                              <div class="scenario-body-line">
+                                <p class="scenario-desc-text">
+                                  <strong>{{ ts.t('detail.expectedResult') }}:</strong> {{ scenario.expected_result }}
+                                </p>
+                                <div class="scenario-comment-text" *ngIf="getScenarioComment(scenario.id)">
+                                  <strong>{{ ts.currentLang() === 'tr' ? 'Açıklama/Gerekçe' : 'Reason/Comment' }}:</strong> {{ getScenarioComment(scenario.id) }}
+                                </div>
+                              </div>
+
+                              <!-- Inline Status Form Editor -->
+                              @if (activeEditingScenarioId() === scenario.id) {
+                                <div class="inline-status-editor glassmorphic-form nested-editor" (click)="$event.stopPropagation()">
+                                  <div class="editor-header">
+                                    <h4>{{ ts.t('monitor.updateStatusForm') }}</h4>
+                                  </div>
+                                  
+                                  <div class="status-tab-selector">
+                                    <button type="button" class="tab-btn success-tab" 
+                                            [class.active]="editFormState().status === 'PASSED'"
+                                            (click)="setEditFormStatus('PASSED')">
+                                      <span class="material-icons">check_circle</span> {{ ts.t('monitor.passed') }}
+                                    </button>
+                                    <button type="button" class="tab-btn pending-tab" 
+                                            [class.active]="editFormState().status === 'PENDING'"
+                                            (click)="setEditFormStatus('PENDING')">
+                                      <span class="material-icons">hourglass_empty</span> {{ ts.t('monitor.pending') }}
+                                    </button>
+                                    <button type="button" class="tab-btn failed-tab" 
+                                            [class.active]="editFormState().status === 'FAILED'"
+                                            (click)="setEditFormStatus('FAILED')">
+                                      <span class="material-icons">cancel</span> {{ ts.t('monitor.failed') }}
+                                    </button>
+                                  </div>
+
+                                  <div class="form-group">
+                                    <label class="form-label">
+                                      <span class="material-icons">rate_review</span> 
+                                      {{ ts.t('monitor.commentLabel') }}
+                                    </label>
+                                    <textarea class="glass-textarea" 
+                                              [value]="editFormState().comment"
+                                              (input)="onEditFormCommentInput($event)"
+                                              [placeholder]="ts.t('monitor.commentPlaceholder')"></textarea>
+                                  </div>
+
+                                  <div class="form-group">
+                                    <div class="evidence-toggle-row">
+                                      <label class="form-label flex-label">
+                                        <span class="material-icons">photo_camera</span> 
+                                        {{ ts.t('monitor.evidenceLabel') }}
+                                      </label>
+                                      <div class="evidence-switch">
+                                        <button type="button" class="switch-btn" 
+                                                [class.active]="!editFormState().attachEvidence"
+                                                (click)="setEditFormEvidence(false)">
+                                          {{ ts.t('monitor.no') }}
+                                        </button>
+                                        <button type="button" class="switch-btn" 
+                                                [class.active]="editFormState().attachEvidence"
+                                                (click)="setEditFormEvidence(true)">
+                                          {{ ts.t('monitor.yes') }}
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    @if (editFormState().attachEvidence) {
+                                      <div class="glass-file-uploader" (click)="triggerFileInput(scenario.id)">
+                                        <input type="file" class="hidden-file-input" 
+                                               [id]="'file-input-' + scenario.id"
+                                               (change)="onEvidenceFileSelected($event)" />
+                                        <span class="material-icons upload-icon">cloud_upload</span>
+                                        @if (editFormState().evidenceFileName) {
+                                          <p class="file-name-display">{{ editFormState().evidenceFileName }}</p>
+                                        } @else {
+                                          <p>{{ ts.t('monitor.fileUploaderPlaceholder') }}</p>
+                                        }
+                                      </div>
+                                    }
+                                  </div>
+
+                                  <div class="editor-actions">
+                                    <button type="button" class="btn-cancel-action" (click)="cancelScenarioEdit()">
+                                      {{ ts.t('monitor.cancel') }}
+                                    </button>
+                                    <button type="button" class="btn-submit-action" 
+                                            [disabled]="editFormState().status === 'FAILED' && !editFormState().comment.trim()"
+                                            (click)="saveScenarioEdit()">
+                                      {{ ts.t('monitor.confirmSubmit') }}
+                                    </button>
+                                  </div>
+                                </div>
+                              }
                             </div>
                           }
                         </div>
                       </div>
                     } @empty {
                       <div class="empty-tasks-state">
-                        <p>No developers tasks generated for this requirement.</p>
+                        <p>{{ ts.t('detail.noTasks') }}</p>
                       </div>
                     }
                   </div>
                 </div>
               </mat-expansion-panel>
             } @empty {
-              <div class="empty-accordion-state">
-                <span class="material-icons empty-acc-icon">warning</span>
-                <p>No requirements decomposed in this document.</p>
-              </div>
+              @if (document().requirements && document().requirements.length > 0) {
+                <div class="empty-accordion-state">
+                  <span class="material-icons empty-acc-icon">filter_list_off</span>
+                  <p>{{ ts.t('detail.noFilterMatches') }}</p>
+                </div>
+              } @else {
+                <div class="empty-accordion-state">
+                  <span class="material-icons empty-acc-icon">warning</span>
+                  <p>{{ ts.t('detail.noReqs') }}</p>
+                </div>
+              }
             }
           </mat-accordion>
         </mat-card-content>
       </mat-card>
     </div>
+
+    <!-- HİDDEN PRİNT-ONLY REPORT TEMPLATE -->
+    <div class="print-only-report">
+      <div class="print-header">
+        <div class="print-header-top">
+          <div class="print-brand">ReqAI</div>
+          <div class="print-report-label">{{ ts.t('detail.printReportLabel') }}</div>
+        </div>
+        <div class="print-doc-title">
+          <h1>{{ document().filename }}</h1>
+          <div class="print-meta-grid">
+            <div class="meta-cell"><strong>{{ ts.t('detail.printUploadDate') }}:</strong> {{ document().uploaded_at | date:'dd MMMM yyyy, HH:mm' }}</div>
+            <div class="meta-cell"><strong>{{ ts.t('detail.printStatus') }}:</strong> {{ document().status }}</div>
+            <div class="meta-cell"><strong>{{ ts.t('detail.printTotalReqs') }}:</strong> {{ document().requirements.length }}</div>
+            <div class="meta-cell"><strong>{{ ts.t('detail.printTotalTasks') }}:</strong> {{ getPriorityCount('ALL') }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="print-requirements-list">
+        @for (req of document().requirements; track req.id; let i = $index) {
+          <div class="print-req-card">
+            <div class="print-req-header">
+              <span class="print-req-id">REQ-{{ i + 1 }}</span>
+              <span class="print-req-title">{{ req.title }}</span>
+              <span class="print-badge" [class]="req.priority.toLowerCase()">{{ req.priority }}</span>
+            </div>
+            <div class="print-req-body">
+              <p class="print-desc-label">{{ ts.t('detail.printReqDesc') }}:</p>
+              <p class="print-desc-text">{{ req.description }}</p>
+            </div>
+
+            @if (req.tasks && req.tasks.length > 0) {
+              <div class="print-tasks-section">
+                <h3>{{ ts.t('detail.printDevTasksTitle') }}</h3>
+                
+                @for (task of req.tasks; track task.id; let tIdx = $index) {
+                  <div class="print-task-card">
+                    <div class="print-task-header">
+                      <span class="print-task-title">Task {{ i + 1 }}.{{ tIdx + 1 }}: {{ task.title }}</span>
+                      <div class="print-task-meta">
+                        <span class="print-badge" [class]="task.priority.toLowerCase()">{{ ts.t('detail.printPriority') }}: {{ task.priority }}</span>
+                        <span class="print-badge" [class]="task.complexity.toLowerCase()">{{ ts.t('detail.printComplexity') }}: {{ task.complexity }}</span>
+                      </div>
+                    </div>
+                    <p class="print-task-desc">{{ task.description }}</p>
+
+                    @if (task.test_scenarios && task.test_scenarios.length > 0) {
+                      <div class="print-scenarios">
+                        <h4>{{ ts.t('detail.printAcceptanceCriteria') }}</h4>
+                        @for (scenario of task.test_scenarios; track scenario.id) {
+                          <div class="print-scenario-row" [class]="getScenarioStatus(scenario.id).toLowerCase()">
+                            <span class="material-icons print-checkbox">
+                              @if (getScenarioStatus(scenario.id) === 'PENDING') {
+                                check_box_outline_blank
+                              } @else if (getScenarioStatus(scenario.id) === 'PASSED') {
+                                check_circle
+                              } @else {
+                                cancel
+                              }
+                            </span>
+                            <span class="print-scenario-text">
+                              <strong>{{ ts.t('detail.printExpectedResult') }}:</strong> {{ scenario.expected_result }}
+                              @if (getScenarioStatus(scenario.id) === 'FAILED' && getScenarioComment(scenario.id)) {
+                                <br/>
+                                <span class="print-failure-reason"><strong>{{ ts.t('detail.printFailureReason') }}:</strong> {{ getScenarioComment(scenario.id) }}</span>
+                              }
+                            </span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
   }
-</div>

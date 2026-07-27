@@ -1,0 +1,41 @@
+========================================================================
+CUSTOMER REQUIREMENTS DOCUMENT: CUSTOMER SELF-SERVICE PORTAL (CSSP)
+========================================================================
+Project Owner: Support & Service Operations Team
+Version: 1.0.0
+Date: July 2026
+
+1. BACKGROUND & PROJECT OBJECTIVE
+------------------------------------------------------------------------
+Our customer service department is experiencing high ticket volumes, leading to long resolution times and customer dissatisfaction. The goal of this initiative is to build a modern, secure, and responsive Customer Self-Service Portal (CSSP). This platform will allow customers to log in, submit issues, track ticket progress, and access a knowledge base, thereby reducing the direct support team's workload.
+
+2. SYSTEM SCOPE & FUNCTIONAL REQUIREMENTS
+------------------------------------------------------------------------
+[REQ-1] Secure User Authentication
+- Customers must be able to register an account using a valid email address and a strong password (minimum 8 characters, containing numbers and special characters).
+- The system must require email verification before allowing portal access.
+- Password reset links must expire after 1 hour for security purposes.
+- Session tokens should expire after 24 hours of inactivity.
+
+[REQ-2] Interactive Ticket Creation
+- Authenticated customers must be able to create support tickets.
+- Each ticket must require a title, detailed description, category selection (e.g., Billing, Technical Support, Bug Report, General Inquiry), and priority declaration.
+- The interface must support optional file attachments (limited to PDFs, JPGs, PNGs, and max size 5MB per file).
+
+[REQ-3] Real-Time Support Dashboard
+- Customers must have a dashboard to view their active and closed tickets.
+- The dashboard should support filtering by ticket status (Open, In Progress, Resolved, Closed) and sorting by creation date.
+- Real-time notification updates (via polling or web sockets) should alert users when a support agent posts a reply on their ticket.
+
+[REQ-4] Admin Assignment & Ticket Management Panel
+- Support agents and admins must have an administrative view to manage tickets.
+- Admins must be able to assign tickets to specific support agents.
+- Agents must be able to post internal comments (invisible to customers) and change ticket status to "In Progress", "Resolved", or "Closed".
+
+3. NON-FUNCTIONAL REQUIREMENTS
+------------------------------------------------------------------------
+[REQ-5] Performance & Responsiveness
+- The portal interface must load in less than 2 seconds under normal network conditions.
+- System must adapt gracefully to desktop, tablet, and mobile displays (responsive grid layout).
+- Databases must encrypt customer passwords using BCrypt hashing prior to database storage.
+========================================================================

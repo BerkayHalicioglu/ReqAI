@@ -248,6 +248,14 @@ $glass-border: rgba(255, 255, 255, 0.5);
       font-weight: 800;
       color: $text-main;
       margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .header-icon {
+        color: $primary-blue;
+        font-size: 20px;
+      }
     }
 
     .table-subtitle {
@@ -274,7 +282,7 @@ $glass-border: rgba(255, 255, 255, 0.5);
     text-align: left;
 
     th {
-      padding: 16px 24px;
+      padding: 10px 18px;
       font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
@@ -285,10 +293,11 @@ $glass-border: rgba(255, 255, 255, 0.5);
     }
 
     td {
-      padding: 16px 24px;
+      padding: 10px 18px;
       border-bottom: 1px solid $border-color;
       font-size: 13px;
       color: $text-main;
+      vertical-align: middle;
     }
 
     .table-row {
@@ -301,6 +310,15 @@ $glass-border: rgba(255, 255, 255, 0.5);
       &:last-child td {
         border-bottom: none;
       }
+
+      &.editing-row {
+        .date-cell,
+        td:nth-child(3) {
+          opacity: 0 !important;
+          transform: translateX(-15px) !important;
+          pointer-events: none !important;
+        }
+      }
     }
 
     .filename-cell {
@@ -308,15 +326,26 @@ $glass-border: rgba(255, 255, 255, 0.5);
       align-items: center;
       gap: 12px;
       font-weight: 600;
+      max-width: 200px;
 
       .file-lead-icon {
         color: $primary-blue;
         font-size: 20px;
+        flex-shrink: 0;
+      }
+
+      .file-name {
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
       }
     }
 
     .date-cell {
       color: $text-muted;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
     .empty-table-state {
@@ -344,6 +373,7 @@ $glass-border: rgba(255, 255, 255, 0.5);
   gap: 8px;
   font-size: 12px;
   font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
   padding: 4px 12px;
   border-radius: 12px;
   text-transform: uppercase;
@@ -371,27 +401,70 @@ $glass-border: rgba(255, 255, 255, 0.5);
     color: #10b981;
     .indicator-dot { background: #10b981; }
   }
+
+  &.failed {
+    background: rgba(239, 68, 68, 0.06);
+    color: #ef4444;
+    .indicator-dot { background: #ef4444; }
+  }
 }
 
 .row-action-btn {
-  font-size: 12px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
+  height: 28px !important;
+  line-height: 26px !important;
+  padding: 0 10px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap !important;
+  transition: all 0.2s !important;
+  color: $primary-blue !important;
+  border: 1px solid rgba(37, 99, 235, 0.15) !important;
   
   .material-icons {
-    font-size: 14px;
+    font-size: 12px !important;
+    line-height: 1 !important;
     vertical-align: middle;
-    margin-left: 4px;
+    margin-left: 2px !important;
+    color: $primary-blue !important;
+  }
+
+  &:hover {
+    background: rgba(37, 99, 235, 0.05) !important;
+    border-color: rgba(37, 99, 235, 0.3) !important;
+  }
+
+  // Override Material persistent hover ripple color
+  ::ng-deep .mat-mdc-button-persistent-ripple::before {
+    background-color: $primary-blue !important;
   }
 
   &.loading {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
   .row-spinner {
     display: inline-block;
+  }
+
+  &.analyze-btn {
+    background: $primary-blue !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2) !important;
+
+    .material-icons {
+      color: white !important;
+    }
+
+    &:hover {
+      background: #1d4ed8 !important;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+    }
   }
 }
 
@@ -436,13 +509,34 @@ $glass-border: rgba(255, 255, 255, 0.5);
   }
 
   button[mat-icon-button] {
-    color: $text-muted;
-    width: 36px;
-    height: 36px;
-    line-height: 36px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: $text-muted !important;
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    transition: all 0.2s ease-in-out !important;
+
+    &:hover:not(:disabled) {
+      color: $primary-blue !important;
+      background: transparent !important;
+    }
 
     &:disabled {
-      color: #cbd5e1;
+      color: #cbd5e1 !important;
+      background: transparent !important;
+    }
+
+    // Hide Angular Material ripple and hover circles
+    ::ng-deep .mat-mdc-button-persistent-ripple::before {
+      display: none !important;
+    }
+    ::ng-deep .mat-mdc-button-ripple {
+      display: none !important;
     }
   }
 }
@@ -455,6 +549,7 @@ $glass-border: rgba(255, 255, 255, 0.5);
 .brain-icon {
   font-size: 32px;
   line-height: 1;
+  color: $primary-blue;
   &.pulse {
     animation: pulseIcon 1.5s infinite ease-in-out;
   }
@@ -463,4 +558,460 @@ $glass-border: rgba(255, 255, 255, 0.5);
 @keyframes pulseIcon {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.2); }
+}
+
+// Media Queries for Responsiveness
+@media (max-width: 1024px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .main-card-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+  
+  .pagination-wrapper {
+    flex-wrap: wrap;
+    gap: 8px;
+    
+    .page-numbers {
+      order: 3;
+      width: 100%;
+      justify-content: center;
+      margin-top: 8px;
+    }
+  }
+}
+
+// Mobile responsiveness for action buttons
+@media (max-width: 640px) {
+  .row-action-btn {
+    min-width: unset !important;
+    padding: 0 8px !important;
+
+    .btn-text {
+      display: none !important;
+    }
+    
+    .material-icons {
+      margin-left: 0 !important;
+    }
+  }
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  &.managing {
+    .row-action-btn {
+      opacity: 0 !important;
+      transform: translateX(-15px) !important;
+      pointer-events: none !important;
+    }
+  }
+}
+
+.manage-actions-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 28px;
+  overflow: visible;
+
+  .manage-toggle-btn {
+    color: #94a3b8 !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    z-index: 2;
+    background: transparent !important;
+    border: none !important;
+
+    .material-icons {
+      font-size: 18px !important;
+      line-height: 1 !important;
+      transition: transform 0.25s ease-in-out !important;
+    }
+
+    &:hover {
+      color: #2563eb !important;
+      background: rgba(15, 23, 42, 0.04) !important;
+    }
+
+    ::ng-deep .mat-mdc-button-persistent-ripple::before,
+    ::ng-deep .mat-mdc-button-touch-target {
+      display: none !important;
+    }
+  }
+
+  .manage-sub-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: absolute;
+    right: 32px;
+    opacity: 0;
+    transform: translateX(10px) scale(0.9);
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+  }
+
+  &.active {
+    .manage-toggle-btn {
+      color: #64748b !important;
+      transform: rotate(90deg);
+      background: rgba(15, 23, 42, 0.04) !important;
+
+      &:hover {
+        color: #ef4444 !important;
+      }
+    }
+
+    .manage-sub-buttons {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+  }
+}
+
+.sub-action-btn {
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(15, 23, 42, 0.06) !important;
+  background: white !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s ease-in-out !important;
+
+  .material-icons {
+    font-size: 16px !important;
+    line-height: 1 !important;
+  }
+
+  ::ng-deep .mat-mdc-button-persistent-ripple::before,
+  ::ng-deep .mat-mdc-button-touch-target {
+    display: none !important;
+  }
+
+  &.rename {
+    color: #64748b !important;
+    &:hover {
+      color: #2563eb !important;
+      border-color: rgba(37, 99, 235, 0.2) !important;
+      background: rgba(37, 99, 235, 0.04) !important;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1) !important;
+    }
+  }
+
+  &.delete {
+    color: #64748b !important;
+    &:hover {
+      color: #ef4444 !important;
+      border-color: rgba(239, 68, 68, 0.2) !important;
+      background: rgba(239, 68, 68, 0.04) !important;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.1) !important;
+    }
+  }
+}
+
+// Inline Rename Element Styles
+.inline-rename-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 250px;
+}
+
+.inline-rename-input {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+
+  &:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  }
+}
+
+.inline-action-btn {
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  border: none !important;
+
+  .material-icons {
+    font-size: 14px !important;
+    line-height: 1 !important;
+  }
+
+  &.save {
+    color: #10b981 !important;
+    &:hover {
+      background: rgba(16, 185, 129, 0.08) !important;
+    }
+  }
+
+  &.cancel {
+    color: #64748b !important;
+    &:hover {
+      background: rgba(100, 116, 139, 0.08) !important;
+    }
+  }
+
+  ::ng-deep .mat-mdc-button-persistent-ripple::before {
+    display: none !important;
+  }
+
+  ::ng-deep .mat-mdc-button-touch-target {
+    display: none !important;
+  }
+}
+
+// Custom Delete Confirmation Modal Styling
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.25s ease-out;
+
+  .confirm-modal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    .modal-warning-icon {
+      font-size: 40px;
+      color: #d97706;
+      margin: 0 auto 16px auto;
+      display: inline-block;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1e293b;
+      margin: 0 0 8px 0;
+    }
+
+    p {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+
+      .modal-btn {
+        flex: 1;
+        height: 38px;
+        font-size: 13px;
+        font-weight: 700;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+
+        &.cancel {
+          color: #64748b !important;
+          background: #f1f5f9 !important;
+          &:hover {
+            background: #e2e8f0 !important;
+          }
+        }
+
+        &.confirm {
+          background: #ef4444 !important;
+          color: white !important;
+          &:hover {
+            background: #dc2626 !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==================== COMPLETE DARK MODE STYLES FOR DASHBOARD COMPONENT ==================== */
+:host-context(.dark-mode) {
+  .dashboard-wrapper {
+    color: #f8fafc !important;
+  }
+
+  .dashboard-header {
+    h1 {
+      color: #f8fafc !important;
+    }
+    .subtitle {
+      color: #94a3b8 !important;
+    }
+  }
+
+  .glassmorphic {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .kpi-card {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+
+    .kpi-label {
+      color: #94a3b8 !important;
+    }
+
+    .kpi-value {
+      color: #f8fafc !important;
+    }
+  }
+
+  .upload-card {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+
+    .upload-drag-zone {
+      background: rgba(30, 41, 59, 0.5) !important;
+      border-color: rgba(59, 130, 246, 0.3) !important;
+
+      h3 {
+        color: #f8fafc !important;
+      }
+
+      p {
+        color: #94a3b8 !important;
+      }
+
+      &:hover, &.drag-over {
+        background: rgba(30, 41, 59, 0.8) !important;
+        border-color: #3b82f6 !important;
+      }
+    }
+  }
+
+  .history-card {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+
+    .card-title-group h2 {
+      color: #f8fafc !important;
+    }
+  }
+
+  .history-table-container {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+
+    th {
+      background: rgba(30, 41, 59, 0.8) !important;
+      color: #94a3b8 !important;
+      border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    td {
+      border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+      color: #e2e8f0 !important;
+
+      &.doc-name {
+        color: #f8fafc !important;
+        .doc-filename {
+          color: #f8fafc !important;
+        }
+      }
+    }
+
+    tr:hover td {
+      background: rgba(30, 41, 59, 0.5) !important;
+    }
+  }
+
+  .delete-confirm-overlay {
+    background: rgba(0, 0, 0, 0.75) !important;
+  }
+
+  .delete-modal-card {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+
+    h3 {
+      color: #f8fafc !important;
+    }
+
+    p {
+      color: #cbd5e1 !important;
+      strong {
+        color: #f8fafc !important;
+      }
+    }
+  }
 }
