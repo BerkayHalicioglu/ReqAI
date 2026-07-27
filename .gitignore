@@ -1,46 +1,101 @@
-# Virtual environment
-backend/venv/
+# ==========================================
+# ReqAI Project - Production Ready .gitignore
+# ==========================================
+
+# ------------------------------------------
+# 1. Environment & API Key Secrets (CRITICAL RISK)
+# ------------------------------------------
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+*.pem
+*.key
+*.p12
+*.crt
+secrets.json
+credentials.json
+
+# ------------------------------------------
+# 2. Python & Virtual Environments
+# ------------------------------------------
 venv/
 .venv/
 env/
-psycopg2-binary/
+ENV/
+env.bak/
+venv.bak/
+backend/venv/
+backend/.venv/
+pip-selfcheck.json
 
-# Environment variables
-.env
-backend/.env
-frontend/.env
+# Python Cache & Bytecode
+__pycache__/
+backend/app/__pycache__/
+backend/app/*/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.eggs/
 
-# Node modules & Angular
+# ------------------------------------------
+# 3. Frontend (Node / Angular / Build Outputs)
+# ------------------------------------------
 node_modules/
 frontend/node_modules/
 .angular/
 frontend/.angular/
+dist/
+frontend/dist/
+coverage/
+.npm
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# IDE files
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.swp
-
-# Python cache & compiled files
-__pycache__/
-backend/app/__pycache__/
-backend/app/core/__pycache__/
-backend/app/models/__pycache__/
-backend/app/routers/__pycache__/
-backend/app/schemas/__pycache__/
-backend/app/services/__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-
-# Local databases & uploads
-*.db
-backend/*.db
+# ------------------------------------------
+# 4. User Uploads & Local Databases
+# ------------------------------------------
+uploads/*
+!uploads/.gitkeep
 backend/uploads/*
 !backend/uploads/.gitkeep
-uploads/
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+
+# ------------------------------------------
+# 5. OS & IDE System Garbage
+# ------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE Settings
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.sublime-workspace
+*.swp
+*.swo
+*~

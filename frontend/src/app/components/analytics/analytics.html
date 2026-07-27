@@ -1,0 +1,193 @@
+<div class="analytics-wrapper">
+  <header class="analytics-header">
+    <h1>{{ ts.t('analytics.title') }}</h1>
+    <p class="subtitle">{{ ts.t('analytics.subtitle') }}</p>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>{{ ts.t('common.loading') }}</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else {
+    <!-- KPI Summary Grid -->
+    <div class="kpi-grid">
+      <mat-card class="kpi-card glassmorphic">
+        <mat-card-content>
+          <div class="kpi-icon-circle blue">
+            <span class="material-icons">folder</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ animDocs() }}</span>
+            <span class="kpi-label">{{ ts.t('analytics.totalDocs') }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card glassmorphic">
+        <mat-card-content>
+          <div class="kpi-icon-circle orange">
+            <span class="material-icons">assignment</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ animReqs() }}</span>
+            <span class="kpi-label">{{ ts.t('analytics.totalReqs') }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card glassmorphic">
+        <mat-card-content>
+          <div class="kpi-icon-circle purple">
+            <span class="material-icons">settings</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ animTasks() }}</span>
+            <span class="kpi-label">{{ ts.t('analytics.totalTasks') }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card glassmorphic">
+        <mat-card-content>
+          <div class="kpi-icon-circle green">
+            <span class="material-icons">done_all</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ animTests() }}</span>
+            <span class="kpi-label">{{ ts.t('analytics.totalTests') }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+      <!-- Requirement Priorities Distribution -->
+      <mat-card class="chart-card glassmorphic">
+        <mat-card-header>
+          <mat-card-title>
+            <span class="material-icons chart-header-icon">priority_high</span>
+            {{ ts.t('analytics.priorityDist') }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="chart-body">
+          <div class="priority-bars-list">
+            <!-- Critical -->
+            <div class="priority-progress-row">
+              <div class="bar-info">
+                <span class="bar-name critical">{{ ts.t('analytics.critical') }}</span>
+                <span class="bar-stats"><strong>{{ priorityCounts()['CRITICAL'] }}</strong> ({{ priorityPercentages()['CRITICAL'] }}%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill critical" [style.width.%]="animPriorityPerc()['CRITICAL']"></div>
+              </div>
+            </div>
+
+            <!-- High -->
+            <div class="priority-progress-row">
+              <div class="bar-info">
+                <span class="bar-name high">{{ ts.t('analytics.high') }}</span>
+                <span class="bar-stats"><strong>{{ priorityCounts()['HIGH'] }}</strong> ({{ priorityPercentages()['HIGH'] }}%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill high" [style.width.%]="animPriorityPerc()['HIGH']"></div>
+              </div>
+            </div>
+
+            <!-- Medium -->
+            <div class="priority-progress-row">
+              <div class="bar-info">
+                <span class="bar-name medium">{{ ts.t('analytics.medium') }}</span>
+                <span class="bar-stats"><strong>{{ priorityCounts()['MEDIUM'] }}</strong> ({{ priorityPercentages()['MEDIUM'] }}%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill medium" [style.width.%]="animPriorityPerc()['MEDIUM']"></div>
+              </div>
+            </div>
+
+            <!-- Low -->
+            <div class="priority-progress-row">
+              <div class="bar-info">
+                <span class="bar-name low">{{ ts.t('analytics.low') }}</span>
+                <span class="bar-stats"><strong>{{ priorityCounts()['LOW'] }}</strong> ({{ priorityPercentages()['LOW'] }}%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill low" [style.width.%]="animPriorityPerc()['LOW']"></div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Task Complexities Distribution -->
+      <mat-card class="chart-card glassmorphic">
+        <mat-card-header>
+          <mat-card-title>
+            <span class="material-icons chart-header-icon">bar_chart</span>
+            {{ ts.t('analytics.complexityDist') }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="chart-body">
+          <div class="complexity-cards-list">
+            <!-- Simple -->
+            <div class="complexity-metric-box simple">
+              <div class="metric-icon-wrapper">
+                <span class="material-icons">speed</span>
+              </div>
+              <div class="metric-info">
+                <h4>{{ ts.t('analytics.simple') }}</h4>
+                <div class="metric-numbers">
+                  <span class="metric-count">{{ complexityCounts()['SIMPLE'] }}</span>
+                  <span class="metric-perc">{{ complexityPercentages()['SIMPLE'] }}%</span>
+                </div>
+              </div>
+              <div class="metric-progress">
+                <div class="metric-progress-bar" [style.width.%]="animComplexityPerc()['SIMPLE']"></div>
+              </div>
+            </div>
+
+            <!-- Moderate -->
+            <div class="complexity-metric-box moderate">
+              <div class="metric-icon-wrapper">
+                <span class="material-icons">bolt</span>
+              </div>
+              <div class="metric-info">
+                <h4>{{ ts.t('analytics.moderate') }}</h4>
+                <div class="metric-numbers">
+                  <span class="metric-count">{{ complexityCounts()['MODERATE'] }}</span>
+                  <span class="metric-perc">{{ complexityPercentages()['MODERATE'] }}%</span>
+                </div>
+              </div>
+              <div class="metric-progress">
+                <div class="metric-progress-bar" [style.width.%]="animComplexityPerc()['MODERATE']"></div>
+              </div>
+            </div>
+
+            <!-- Complex -->
+            <div class="complexity-metric-box complex">
+              <div class="metric-icon-wrapper">
+                <span class="material-icons">legend_toggle</span>
+              </div>
+              <div class="metric-info">
+                <h4>{{ ts.t('analytics.complex') }}</h4>
+                <div class="metric-numbers">
+                  <span class="metric-count">{{ complexityCounts()['COMPLEX'] }}</span>
+                  <span class="metric-perc">{{ complexityPercentages()['COMPLEX'] }}%</span>
+                </div>
+              </div>
+              <div class="metric-progress">
+                <div class="metric-progress-bar" [style.width.%]="animComplexityPerc()['COMPLEX']"></div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

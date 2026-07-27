@@ -1,8 +1,4 @@
 // Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
 html {
@@ -10,8 +6,8 @@ html {
   @include mat.theme(
     (
       color: (
-        primary: mat.$magenta-palette,
-        tertiary: mat.$violet-palette,
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
       ),
       typography: Roboto,
       density: 0,
@@ -20,20 +16,463 @@ html {
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
   color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
+  font-family: 'Outfit', 'Inter', sans-serif !important;
   margin: 0;
   height: 100%;
 }
-/* You can add global styles to this file, and also import other style files */
+
+/* Global click ripple color override to match premium blue theme */
+.mat-ripple-element {
+  background-color: rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Ensure Material Icons font family is never overridden by global body font rules */
+.material-icons {
+  font-family: 'Material Icons' !important;
+}
+
+/* ==================== COMPREHENSIVE DARK MODE STYLES ==================== */
+html.dark-mode, body.dark-mode {
+  color-scheme: dark !important;
+  background-color: #0b0f19 !important;
+  color: #f8fafc !important;
+
+  .app-content {
+    background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b0f19 100%) !important;
+  }
+
+  .app-sidebar {
+    background: #070a12 !important;
+    border-right-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .app-topbar {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Universal Heading & Title Overrides */
+  h1, h2, h3, h4, h5, h6,
+  .header-title, .job-title, .req-title, .doc-title, .panel-title,
+  .mat-mdc-card-title, .metric-count, .kpi-value, .scen-badge,
+  .print-doc-title h1, .doc-title-info h1, .stat-value {
+    color: #f8fafc !important;
+  }
+
+  p, span, label, td, div {
+    color: #cbd5e1;
+  }
+
+  .subtitle, .header-desc, .meta-item, .scen-desc, .form-section-label,
+  .bar-stats, .meta-cell, .kpi-label, .metric-perc, .scen-info-simple {
+    color: #94a3b8 !important;
+  }
+
+  /* Glassmorphism Overrides */
+  .glassmorphic {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
+
+    &:hover {
+      border-color: rgba(59, 130, 246, 0.3) !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+    }
+  }
+
+  .glassmorphic-form {
+    background: rgba(15, 23, 42, 0.9) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+
+    input[type="text"], textarea, select {
+      background: #1e293b !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+
+      &:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+      }
+    }
+
+    .form-section-label {
+      color: #94a3b8 !important;
+    }
+
+    .status-tab-btn {
+      background: #1e293b !important;
+      color: #94a3b8 !important;
+      border-color: #334155 !important;
+
+      &.active.passed { background: #15803d !important; color: #ffffff !important; }
+      &.active.pending { background: #b45309 !important; color: #ffffff !important; }
+      &.active.failed { background: #b91c1c !important; color: #ffffff !important; }
+    }
+  }
+
+  /* WORKFLOW MONITOR PAGE DARK MODE ADAPTATION */
+  .monitor-container-fluid {
+    background-color: #0b0f19 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .glass-bg-container {
+    background: radial-gradient(circle at 50% 50%, #0b0f19 0%, #070a12 100%) !important;
+  }
+
+  .glass-orb {
+    opacity: 0.35 !important;
+  }
+  .orb-1 { background: radial-gradient(circle, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0) 70%) !important; }
+  .orb-2 { background: radial-gradient(circle, rgba(88, 28, 135, 0.6) 0%, rgba(15, 23, 42, 0) 70%) !important; }
+  .orb-3 { background: radial-gradient(circle, rgba(124, 45, 18, 0.5) 0%, rgba(15, 23, 42, 0) 70%) !important; }
+
+  .monitor-wrapper {
+    color: #f8fafc !important;
+  }
+
+  .monitor-header, .jobs-list-panel, .details-panel, .job-header-card, .placeholder-panel {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f8fafc !important;
+  }
+
+  .job-card {
+    background: rgba(30, 41, 59, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+
+    &:hover {
+      background: rgba(30, 41, 59, 0.8) !important;
+      border-color: rgba(59, 130, 246, 0.4) !important;
+    }
+
+    &.active {
+      background: rgba(30, 58, 138, 0.4) !important;
+      border-color: #3b82f6 !important;
+    }
+  }
+
+  .fail-scenario-item {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+
+    &:hover {
+      background: rgba(30, 41, 59, 0.9) !important;
+    }
+  }
+
+  .scen-item {
+    background: rgba(30, 41, 59, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+
+    &:hover {
+      background: rgba(30, 41, 59, 0.8) !important;
+    }
+  }
+
+  .scen-badge {
+    background: rgba(30, 58, 138, 0.5) !important;
+    color: #60a5fa !important;
+  }
+
+  .stat-card {
+    background: rgba(30, 41, 59, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  /* Cards & Modals */
+  mat-card, .kpi-card, .chart-card, .document-info-card, .print-req-card {
+    background: rgba(15, 23, 42, 0.75) !important;
+    color: #f8fafc !important;
+  }
+
+  .kpi-value, .kpi-data .kpi-value {
+    color: #f8fafc !important;
+  }
+
+  /* History Table */
+  .history-table-container {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+
+    th {
+      background: rgba(30, 41, 59, 0.8) !important;
+      color: #94a3b8 !important;
+      border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    td {
+      border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+      color: #e2e8f0 !important;
+    }
+
+    tr:hover td {
+      background: rgba(30, 41, 59, 0.5) !important;
+    }
+  }
+
+  /* Detail Screen & Content */
+  .raw-content-card,
+  .raw-content-body,
+  .raw-pre,
+  .raw-content-box {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+
+    h3, pre, code, span, p {
+      color: #ffffff !important;
+    }
+  }
+
+  /* Angular Material Expansion Panels */
+  mat-expansion-panel,
+  .mat-expansion-panel,
+  .req-expansion-panel {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .mat-expansion-panel-header,
+  mat-expansion-panel-header {
+    background: rgba(15, 23, 42, 0.85) !important;
+    color: #ffffff !important;
+
+    &:hover, &.mat-expanded {
+      background: rgba(30, 41, 59, 0.9) !important;
+    }
+  }
+
+  .mat-expansion-panel-header-title,
+  mat-panel-title,
+  .mat-panel-title,
+  .req-title,
+  .req-title-text {
+    color: #ffffff !important;
+  }
+
+  .req-description-para,
+  .main-label,
+  .main-label strong {
+    color: #ffffff !important;
+  }
+
+  .mat-expansion-panel-header-description,
+  mat-panel-description,
+  .mat-panel-description {
+    color: #94a3b8 !important;
+  }
+
+  .mat-expansion-indicator::after {
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+  }
+
+  .mat-expansion-panel-content {
+    background: rgba(15, 23, 42, 0.8) !important;
+    color: #e2e8f0 !important;
+  }
+
+  /* Developer Task Cards & Scenarios */
+  .developer-task-card,
+  .task-card {
+    background: rgba(30, 41, 59, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+
+    .task-card-header,
+    .task-header {
+      .task-headline,
+      .task-title {
+        color: #ffffff !important;
+        strong {
+          color: #ffffff !important;
+        }
+      }
+    }
+
+    .task-body-desc,
+    .task-desc {
+      color: #cbd5e1 !important;
+    }
+  }
+
+  .test-scenarios-box {
+    border-top-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .scenario-workflow-row,
+  .scenario-item {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+
+    &:hover {
+      background: rgba(30, 41, 59, 0.85) !important;
+    }
+
+    .scenario-desc-text {
+      color: #cbd5e1 !important;
+      strong {
+        color: #ffffff !important;
+      }
+    }
+
+    .scenario-comment-text {
+      background: rgba(30, 41, 59, 0.9) !important;
+      color: #f1f5f9 !important;
+      border-left-color: #3b82f6 !important;
+      strong {
+        color: #60a5fa !important;
+      }
+    }
+  }
+
+  /* Upload Drag Zone */
+  .upload-drag-zone {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+
+    &:hover, &.drag-over {
+      background: rgba(30, 41, 59, 0.8) !important;
+      border-color: #3b82f6 !important;
+    }
+  }
+
+  /* Edit Requirement Card & Form Elements */
+  .edit-req-block {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+
+    .edit-label {
+      color: #94a3b8 !important;
+    }
+
+    .edit-input,
+    .edit-textarea,
+    .edit-select {
+      background: rgba(30, 41, 59, 0.85) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      color: #ffffff !important;
+
+      option {
+        background: #0f172a !important;
+        color: #ffffff !important;
+      }
+    }
+  }
+
+  /* Global Buttons Dark Mode */
+  button.edit-req-btn {
+    background: rgba(30, 41, 59, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #60a5fa !important;
+
+    &:hover {
+      background: rgba(51, 65, 85, 0.9) !important;
+      color: #ffffff !important;
+    }
+  }
+
+  button.save-btn,
+  button.btn-submit-action {
+    background: #2563eb !important;
+    color: #ffffff !important;
+
+    &:hover {
+      background: #1d4ed8 !important;
+    }
+  }
+
+  button.cancel-btn,
+  button.btn-cancel-action {
+    background: rgba(30, 41, 59, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #cbd5e1 !important;
+
+    &:hover {
+      background: rgba(51, 65, 85, 0.85) !important;
+      color: #ffffff !important;
+    }
+  }
+
+  /* Priority pills */
+  .priority-filter-bar .filter-pill {
+    background: rgba(30, 41, 59, 0.8) !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+
+    &.active {
+      background: #2563eb !important;
+      color: #ffffff !important;
+    }
+  }
+
+  /* Complexity boxes in Analytics */
+  .complexity-metric-box {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+
+    .metric-count {
+      color: #f8fafc !important;
+    }
+  }
+
+  /* Progress track */
+  .progress-track, .metric-progress {
+    background: #1e293b !important;
+  }
+
+  /* Topbar Controls */
+  .theme-toggle-btn {
+    background: rgba(30, 41, 59, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #f59e0b !important;
+
+    &:hover {
+      background: rgba(51, 65, 85, 0.95) !important;
+      color: #fbbf24 !important;
+    }
+  }
+
+  .lang-switcher {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+
+    .lang-btn {
+      color: #cbd5e1 !important;
+
+      &:hover {
+        color: #ffffff !important;
+      }
+
+      &.active {
+        color: #ffffff !important;
+        background: #2563eb !important;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+      }
+    }
+
+    .lang-divider {
+      color: rgba(255, 255, 255, 0.2) !important;
+    }
+  }
+
+  /* Dialogs */
+  .delete-confirm-overlay {
+    background: rgba(0, 0, 0, 0.75) !important;
+  }
+
+  .delete-modal-card {
+    background: #0f172a !important;
+    border: 1px solid #334155 !important;
+  }
+}

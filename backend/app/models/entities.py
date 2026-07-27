@@ -31,6 +31,12 @@ class DocumentStatus(str, enum.Enum):
     FAILED = "FAILED"
 
 
+class TestStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    PASSED = "PASSED"
+    FAILED = "FAILED"
+
+
 def gen_uuid():
     return str(uuid.uuid4())
 
@@ -88,6 +94,11 @@ class TestScenario(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     expected_result = Column(Text, nullable=False)
+    status = Column(String(50), default="PENDING", nullable=False)
+    comment = Column(Text, nullable=True)
+    evidence_file = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     task = relationship("Task", back_populates="test_scenarios")
+
+

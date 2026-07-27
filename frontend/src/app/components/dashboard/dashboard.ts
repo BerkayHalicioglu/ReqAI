@@ -2,11 +2,14 @@ import { Component, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
+import { TranslationService } from '../../services/translation.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,7 +20,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatIconModule, 
     MatButtonModule, 
     MatProgressBarModule, 
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatMenuModule,
+    MatTooltipModule
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
@@ -28,38 +33,32 @@ export class Dashboard implements OnInit {
   protected readonly isAnalyzing = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isDragOver = signal(false);
+  protected readonly editingDocId = signal<string | null>(null);
+  protected readonly activeManageId = signal<string | null>(null);
+  protected readonly deleteConfirmId = signal<string | null>(null);
+
+  // Global stats signals from paginated backend response
+  protected readonly totalDocsCount = signal(0);
+  protected readonly globalRequirementsCount = signal(0);
+  protected readonly globalCriticalRequirementsCount = signal(0);
+  protected readonly globalTasksCount = signal(0);
 
   // Computed signals for KPI Cards
-  protected readonly totalDocuments = computed(() => this.documents().length);
-  protected readonly totalRequirements = computed(() => {
-    return this.documents().reduce((acc, doc) => acc + (doc.requirements?.length || 0), 0);
-  });
-  protected readonly criticalRequirements = computed(() => {
-    return this.documents().reduce((acc, doc) => {
-      const criticalCount = doc.requirements?.filter((r: any) => r.priority === 'CRITICAL' || r.priority === 'HIGH').length || 0;
-      return acc + criticalCount;
-    }, 0);
-  });
-  protected readonly totalTasks = computed(() => {
-    return this.documents().reduce((acc, doc) => {
-      const tasksCount = doc.requirements?.reduce((tAcc: number, r: any) => tAcc + (r.tasks?.length || 0), 0) || 0;
-      return acc + tasksCount;
-    }, 0);
-  });
+  protected readonly totalDocuments = computed(() => this.totalDocsCount());
+  protected readonly totalRequirements = computed(() => this.globalRequirementsCount());
+  protected readonly criticalRequirements = computed(() => this.globalCriticalRequirementsCount());
+  protected readonly totalTasks = computed(() => this.globalTasksCount());
 
   // Pagination Properties
   protected readonly currentPage = signal(1);
   protected readonly pageSize = signal(5);
 
   protected readonly totalPages = computed(() => {
-    const docsCount = this.documents().length;
-    return Math.ceil(docsCount / this.pageSize());
+    return Math.ceil(this.totalDocsCount() / this.pageSize());
   });
 
   protected readonly paginatedDocuments = computed(() => {
-    const startIndex = (this.currentPage() - 1) * this.pageSize();
-    const endIndex = startIndex + this.pageSize();
-    return this.documents().slice(startIndex, endIndex);
+    return this.documents();
   });
 
   protected readonly pagesArray = computed(() => {
@@ -69,7 +68,8 @@ export class Dashboard implements OnInit {
 
   constructor(
     private api: Api,
-    private router: Router
+    private router: Router,
+    public ts: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -79,17 +79,32 @@ export class Dashboard implements OnInit {
   setPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
+      this.loadDocuments();
     }
   }
 
-  loadDocuments(): void {
-    this.api.getDocuments().subscribe({
-      next: (data) => {
-        this.documents.set(data);
-        this.currentPage.set(1); // Reset to page 1 on fresh load
+  loadDocuments(resetPage: boolean = false): void {
+    if (resetPage) {
+      this.currentPage.set(1);
+    }
+    const skip = (this.currentPage() - 1) * this.pageSize();
+    const limit = this.pageSize();
+
+    this.api.getDocuments(skip, limit).subscribe({
+      next: (res) => {
+        if (res.items.length === 0 && this.currentPage() > 1) {
+          this.currentPage.set(this.currentPage() - 1);
+          this.loadDocuments();
+          return;
+        }
+        this.documents.set(res.items);
+        this.totalDocsCount.set(res.total);
+        this.globalRequirementsCount.set(res.total_requirements);
+        this.globalCriticalRequirementsCount.set(res.total_critical_requirements);
+        this.globalTasksCount.set(res.total_tasks);
       },
       error: (err) => {
-        this.errorMessage.set('Doküman listesi yüklenirken bir hata oluştu.');
+        this.errorMessage.set(this.ts.t('dashboard.loadError'));
         console.error(err);
       }
     });
@@ -121,8 +136,9 @@ export class Dashboard implements OnInit {
   }
 
   uploadFile(file: File): void {
-    if (!file.name.endsWith('.txt')) {
-      this.errorMessage.set('Lütfen sadece .txt formatında bir dosya yükleyin.');
+    const nameLower = file.name.toLowerCase();
+    if (!nameLower.endsWith('.txt') && !nameLower.endsWith('.pdf') && !nameLower.endsWith('.docx')) {
+      this.errorMessage.set(this.ts.t('dashboard.invalidFile'));
       return;
     }
 
@@ -137,7 +153,7 @@ export class Dashboard implements OnInit {
       },
       error: (err) => {
         this.isUploading.set(false);
-        this.errorMessage.set('Dosya yüklenirken sunucu hatası oluştu.');
+        this.errorMessage.set(this.ts.t('dashboard.uploadError'));
         console.error(err);
       }
     });
@@ -152,9 +168,63 @@ export class Dashboard implements OnInit {
       },
       error: (err) => {
         this.isAnalyzing.set(false);
-        this.errorMessage.set('AI analizi sırasında bir hata oluştu (Fallback devrede olabilir). Detay sayfasından kontrol edebilirsiniz.');
+        this.errorMessage.set(this.ts.t('dashboard.analyzeError'));
         console.error(err);
         this.router.navigate(['/document', docId]);
+      }
+    });
+  }
+
+  deleteDocument(docId: string): void {
+    this.deleteConfirmId.set(docId);
+  }
+
+  cancelDelete(): void {
+    this.deleteConfirmId.set(null);
+  }
+
+  confirmDelete(): void {
+    const docId = this.deleteConfirmId();
+    if (!docId) return;
+
+    this.api.deleteDocument(docId).subscribe({
+      next: () => {
+        this.deleteConfirmId.set(null);
+        this.loadDocuments();
+      },
+      error: (err) => {
+        this.deleteConfirmId.set(null);
+        this.errorMessage.set(this.ts.t('dashboard.deleteError'));
+        console.error(err);
+      }
+    });
+  }
+
+  toggleManage(id: string | null): void {
+    this.activeManageId.set(this.activeManageId() === id ? null : id);
+  }
+
+  startRename(docId: string): void {
+    this.editingDocId.set(docId);
+  }
+
+  cancelRename(): void {
+    this.editingDocId.set(null);
+  }
+
+  saveRename(docId: string, newName: string): void {
+    if (!newName || !newName.trim()) {
+      this.cancelRename();
+      return;
+    }
+    this.api.renameDocument(docId, newName.trim()).subscribe({
+      next: () => {
+        this.cancelRename();
+        this.loadDocuments();
+      },
+      error: (err) => {
+        this.errorMessage.set(this.ts.t('dashboard.renameError'));
+        console.error(err);
       }
     });
   }

@@ -1,0 +1,457 @@
+<div class="monitor-container-fluid">
+  <!-- Dynamic Blue Animated Background Orbs -->
+  <div class="glass-bg-container">
+    <div class="glass-orb orb-1"></div>
+    <div class="glass-orb orb-2"></div>
+    <div class="glass-orb orb-3"></div>
+  </div>
+
+  <div class="monitor-wrapper">
+    <!-- Header -->
+    <header class="monitor-header">
+      <div class="header-info">
+        <span class="material-icons header-icon">visibility</span>
+        <div>
+          <h1>{{ ts.t('monitor.title') }}</h1>
+          <p class="subtitle">{{ ts.t('monitor.subtitle') }}</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="monitor-layout">
+      
+      <!-- LEFT PANEL: Jobs List -->
+      <aside class="jobs-panel">
+        @if (isLoading()) {
+          <div class="loading-state glassmorphic">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>{{ ts.t('common.loading') }}</p>
+          </div>
+        } @else if (errorMessage()) {
+          <div class="error-banner glassmorphic">
+            <span class="material-icons">error_outline</span>
+            <p>{{ errorMessage() }}</p>
+          </div>
+        } @else if (jobs().length === 0) {
+          <div class="empty-state glassmorphic">
+            <span class="material-icons empty-icon">assignment_late</span>
+            <p>{{ ts.t('dashboard.emptyTable') }}</p>
+          </div>
+        } @else {
+          <div class="jobs-grid">
+            @for (job of jobs(); track job.id) {
+              <div class="job-glass-card" 
+                   [class.active]="selectedJob()?.id === job.id" 
+                   (click)="selectJob(job)">
+                <div class="card-header">
+                  <div class="job-icon-box">
+                    <span class="material-icons">description</span>
+                  </div>
+                  <div class="job-title-area">
+                    <a [routerLink]="['/document', job.id]" 
+                       class="job-name-link" 
+                       (click)="$event.stopPropagation()" 
+                       [title]="job.filename">
+                      {{ job.filename }}
+                    </a>
+                    <span class="job-date">{{ job.uploaded_at | date:'dd MMM yyyy, HH:mm' }}</span>
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <!-- Progress Bar -->
+                  <div class="progress-section">
+                    <div class="progress-labels">
+                      <span>{{ ts.t('monitor.completionRate') }}</span>
+                      <span class="rate-val">{{ job.completionRate }}%</span>
+                    </div>
+                    <div class="job-progress-track">
+                      <div class="job-progress-fill" [style.width.%]="job.completionRate"></div>
+                    </div>
+                  </div>
+
+                  <!-- Quick Stats / Health Badge -->
+                  <div class="card-footer">
+                    <span class="health-badge" [class]="job.health.toLowerCase()">
+                      <span class="dot"></span>
+                      {{ ts.t('monitor.health' + job.health.charAt(0) + job.health.slice(1).toLowerCase()) }}
+                    </span>
+                    <span class="stats-badge" *ngIf="job.status === 'ANALYZED'">
+                      <span class="material-icons">task_alt</span>
+                      {{ job.passedCount }}/{{ job.totalScenarios }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </aside>
+
+      <!-- RIGHT PANEL: Job Details & Workflow Control -->
+      <main class="details-panel">
+        @if (isDetailLoading()) {
+          <div class="loading-state glassmorphic">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>{{ ts.t('common.loading') }}</p>
+          </div>
+        } @else if (selectedJob()) {
+          <div class="job-details-glass-box">
+            
+            <!-- Details Header -->
+            <div class="details-header">
+              <div class="title-section">
+                <span class="badge-tag">{{ ts.t('monitor.jobName') }}</span>
+                <h2>
+                   <a [routerLink]="['/document', selectedJob().id]" 
+                      class="detail-name-link" 
+                      [title]="selectedJob().filename">
+                     {{ selectedJob().filename }}
+                     <span class="material-icons open-icon">open_in_new</span>
+                   </a>
+                 </h2>
+                <div class="job-meta">
+                  <span>
+                    <span class="material-icons">schedule</span>
+                    {{ selectedJob().uploaded_at | date:'dd MMM yyyy, HH:mm' }}
+                  </span>
+                  <span class="divider">|</span>
+                  <span class="health-badge" [class]="calculateJobStats(selectedJob()).health.toLowerCase()">
+                    <span class="dot"></span>
+                    {{ ts.t('monitor.health' + calculateJobStats(selectedJob()).health.charAt(0) + calculateJobStats(selectedJob()).health.slice(1).toLowerCase()) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Compliance Circular Progress/Stat -->
+              <div class="compliance-gauge-circular">
+                <svg class="progress-svg" viewBox="0 0 100 100">
+                  <defs>
+                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#2563eb" />
+                      <stop offset="100%" stop-color="#60a5fa" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="progress-bg" cx="50" cy="50" r="40" 
+                          stroke="rgba(15, 23, 42, 0.05)" stroke-width="6" fill="transparent" />
+                  <circle class="progress-bar-fill" cx="50" cy="50" r="40" 
+                          stroke="url(#progressGradient)" stroke-width="6" fill="transparent"
+                          stroke-linecap="round"
+                          stroke-dasharray="251.2"
+                          [attr.stroke-dashoffset]="251.2 - (251.2 * animatedGaugeProgress() / 100)" />
+                </svg>
+                <div class="gauge-inner-content">
+                  <span class="gauge-value">{{ animatedGaugeProgress() }}%</span>
+                  <span class="gauge-label">{{ ts.t('monitor.completionRate') }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scrollable Flow Sections -->
+            <div class="details-scroll-content">
+              
+              <!-- FAIL REQUIREMENTS FIRST (URGENT WORKFLOW ACTION ROOM) -->
+              <div class="workflow-section failed-section">
+                <div class="section-title-bar failed-title">
+                  <span class="material-icons">report_problem</span>
+                  <h3>{{ ts.t('monitor.failedReqs') }}</h3>
+                  <span class="count-badge">{{ failedRequirements().length }}</span>
+                </div>
+
+                @if (failedRequirements().length === 0) {
+                  <div class="no-items-card success-alert">
+                    <span class="material-icons">verified</span>
+                    <p>{{ ts.t('monitor.noFailedReqs') }}</p>
+                  </div>
+                } @else {
+                  <div class="reqs-stack">
+                    @for (req of failedRequirements(); track req.id) {
+                      <div class="req-workflow-card failed-card">
+                        <div class="req-header">
+                          <div class="req-title-wrapper">
+                            <span class="priority-indicator" [class]="getPriorityClass(req.priority)"></span>
+                            <h4>{{ req.title }}</h4>
+                          </div>
+                          <span class="badge priority-badge" [class]="getPriorityClass(req.priority)">
+                            {{ req.priority }}
+                          </span>
+                        </div>
+                        <p class="req-desc">{{ req.description }}</p>
+
+                        <!-- Nested Fail Scenarios list -->
+                        <div class="failed-scenarios-box">
+                          <h5 class="scenarios-title">{{ ts.t('monitor.testDetails') }}:</h5>
+                          @for (scen of req.failedScenarios; track scen.id) {
+                            <div class="fail-scenario-item" (click)="activeEditingScenarioId() === scen.id ? cancelScenarioEdit() : startEditingScenario(scen.id)" style="cursor: pointer;">
+                              <div class="scen-top">
+                                <span class="scen-badge">{{ scen.taskTitle }}</span>
+                                <div class="scen-status-evidence-row">
+                                  <a [href]="getEvidenceUrl(scen.evidenceFile)" target="_blank" (click)="$event.stopPropagation()" class="evidence-tag clickable" *ngIf="scen.evidenceFile">
+                                    <span class="material-icons">attach_file</span> {{ scen.evidenceFile }}
+                                  </a>
+                                </div>
+                              </div>
+                              <p class="scen-desc"><strong>{{ scen.title }}:</strong> {{ scen.description }}</p>
+                              <p class="scen-result"><strong>{{ ts.t('detail.expectedResult') }}:</strong> {{ scen.expectedResult }}</p>
+                              <div class="scen-comment" *ngIf="scen.comment"><strong>{{ ts.t('monitor.failReason') }}:</strong> {{ scen.comment }}</div>
+
+                              <!-- Inline Status Editor -->
+                              @if (activeEditingScenarioId() === scen.id) {
+                                <div class="inline-status-editor glassmorphic-form" (click)="$event.stopPropagation()">
+                                  <div class="editor-header">
+                                    <h4>{{ ts.t('monitor.updateStatusForm') }}</h4>
+                                  </div>
+                                  
+                                  <div class="status-tab-selector">
+                                    <button type="button" class="tab-btn success-tab" 
+                                            [class.active]="editFormState().status === 'PASSED'"
+                                            (click)="setEditFormStatus('PASSED')">
+                                      <span class="material-icons">check_circle</span> {{ ts.t('monitor.passed') }}
+                                    </button>
+                                    <button type="button" class="tab-btn pending-tab" 
+                                            [class.active]="editFormState().status === 'PENDING'"
+                                            (click)="setEditFormStatus('PENDING')">
+                                      <span class="material-icons">hourglass_empty</span> {{ ts.t('monitor.pending') }}
+                                    </button>
+                                    <button type="button" class="tab-btn failed-tab" 
+                                            [class.active]="editFormState().status === 'FAILED'"
+                                            (click)="setEditFormStatus('FAILED')">
+                                      <span class="material-icons">cancel</span> {{ ts.t('monitor.failed') }}
+                                    </button>
+                                  </div>
+
+                                  <div class="form-group">
+                                    <label class="form-label">
+                                      <span class="material-icons">rate_review</span> 
+                                      {{ ts.t('monitor.commentLabel') }}
+                                    </label>
+                                    <textarea class="glass-textarea" 
+                                              [value]="editFormState().comment"
+                                              (input)="onEditFormCommentInput($event)"
+                                              [placeholder]="ts.t('monitor.commentPlaceholder')"></textarea>
+                                  </div>
+
+                                  <div class="form-group">
+                                    <div class="evidence-toggle-row">
+                                      <label class="form-label flex-label">
+                                        <span class="material-icons">photo_camera</span> 
+                                        {{ ts.t('monitor.evidenceLabel') }}
+                                      </label>
+                                      <div class="evidence-switch">
+                                        <button type="button" class="switch-btn" 
+                                                [class.active]="!editFormState().attachEvidence"
+                                                (click)="setEditFormEvidence(false)">
+                                          {{ ts.t('monitor.no') }}
+                                        </button>
+                                        <button type="button" class="switch-btn" 
+                                                [class.active]="editFormState().attachEvidence"
+                                                (click)="setEditFormEvidence(true)">
+                                          {{ ts.t('monitor.yes') }}
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    @if (editFormState().attachEvidence) {
+                                      <div class="glass-file-uploader" (click)="triggerFileInput(scen.id)">
+                                        <input type="file" class="hidden-file-input" 
+                                               [id]="'file-input-' + scen.id"
+                                               (change)="onEvidenceFileSelected($event)" />
+                                        <span class="material-icons upload-icon">cloud_upload</span>
+                                        @if (editFormState().evidenceFileName) {
+                                          <p class="file-name-display">{{ editFormState().evidenceFileName }}</p>
+                                        } @else {
+                                          <p>{{ ts.t('monitor.fileUploaderPlaceholder') }}</p>
+                                        }
+                                      </div>
+                                    }
+                                  </div>
+
+                                  <div class="editor-actions">
+                                    <button type="button" class="btn-cancel-action" (click)="cancelScenarioEdit()">
+                                      {{ ts.t('monitor.cancel') }}
+                                    </button>
+                                    <button type="button" class="btn-submit-action" 
+                                            [disabled]="editFormState().status === 'FAILED' && !editFormState().comment.trim()"
+                                            (click)="saveScenarioEdit()">
+                                      {{ ts.t('monitor.confirmSubmit') }}
+                                    </button>
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- COMPLETED REQUIREMENTS SECTION -->
+              <div class="workflow-section completed-section">
+                <div class="section-title-bar success-title">
+                  <span class="material-icons">task_alt</span>
+                  <h3>{{ ts.t('monitor.completedReqs') }}</h3>
+                  <span class="count-badge success">{{ completedRequirements().length }}</span>
+                </div>
+
+                @if (completedRequirements().length === 0) {
+                  <div class="no-items-card">
+                    <span class="material-icons">info_outline</span>
+                    <p>{{ ts.t('monitor.noCompletedReqs') }}</p>
+                  </div>
+                } @else {
+                  <div class="reqs-stack">
+                    @for (req of completedRequirements(); track req.id) {
+                      <div class="req-workflow-card success-card">
+                        <div class="req-header">
+                          <div class="req-title-wrapper">
+                            <span class="priority-indicator" [class]="getPriorityClass(req.priority)"></span>
+                            <h4>{{ req.title }}</h4>
+                          </div>
+                          <span class="badge priority-badge" [class]="getPriorityClass(req.priority)">
+                            {{ req.priority }}
+                          </span>
+                        </div>
+                        <p class="req-desc">{{ req.description }}</p>
+
+                        <!-- Toggle details for scenarios in completed (optional check) -->
+                        <div class="completed-scenarios-dropdown">
+                          @if (req.tasks) {
+                            @for (task of req.tasks; track task.id) {
+                              @if (task.test_scenarios) {
+                                @for (scen of task.test_scenarios; track scen.id) {
+                                  <div class="completed-scen-row-container" (click)="activeEditingScenarioId() === scen.id ? cancelScenarioEdit() : startEditingScenario(scen.id)" style="cursor: pointer;">
+                                    <div class="completed-scen-row">
+                                      <span class="material-icons icon-success" [class.pending-color]="getScenarioStatus(scen.id) === 'PENDING'">
+                                        {{ getScenarioStatus(scen.id) === 'PASSED' ? 'verified' : 'hourglass_empty' }}
+                                      </span>
+                                      <div class="scen-info-simple">
+                                        <strong>{{ task.title }} &raquo; {{ scen.title }}</strong>
+                                        <div class="scen-meta-row" *ngIf="getScenarioComment(scen.id) || getScenarioEvidence(scen.id)">
+                                          <span class="scen-meta-comment" *ngIf="getScenarioComment(scen.id)">
+                                            <strong>Not:</strong> {{ getScenarioComment(scen.id) }}
+                                          </span>
+                                          <a [href]="getEvidenceUrl(getScenarioEvidence(scen.id)!)" target="_blank" (click)="$event.stopPropagation()" class="scen-meta-evidence clickable" *ngIf="getScenarioEvidence(scen.id)">
+                                            <span class="material-icons">attach_file</span> {{ getScenarioEvidence(scen.id) }}
+                                          </a>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <!-- Inline Status Editor -->
+                                    @if (activeEditingScenarioId() === scen.id) {
+                                      <div class="inline-status-editor glassmorphic-form nested-editor" (click)="$event.stopPropagation()">
+                                        <div class="editor-header">
+                                          <h4>{{ ts.t('monitor.updateStatusForm') }}</h4>
+                                        </div>
+                                        
+                                        <div class="status-tab-selector">
+                                          <button type="button" class="tab-btn success-tab" 
+                                                  [class.active]="editFormState().status === 'PASSED'"
+                                                  (click)="setEditFormStatus('PASSED')">
+                                            <span class="material-icons">check_circle</span> {{ ts.t('monitor.passed') }}
+                                          </button>
+                                          <button type="button" class="tab-btn pending-tab" 
+                                                  [class.active]="editFormState().status === 'PENDING'"
+                                                  (click)="setEditFormStatus('PENDING')">
+                                            <span class="material-icons">hourglass_empty</span> {{ ts.t('monitor.pending') }}
+                                          </button>
+                                          <button type="button" class="tab-btn failed-tab" 
+                                                  [class.active]="editFormState().status === 'FAILED'"
+                                                  (click)="setEditFormStatus('FAILED')">
+                                            <span class="material-icons">cancel</span> {{ ts.t('monitor.failed') }}
+                                          </button>
+                                        </div>
+
+                                        <div class="form-group">
+                                          <label class="form-label">
+                                            <span class="material-icons">rate_review</span> 
+                                            {{ ts.t('monitor.commentLabel') }}
+                                          </label>
+                                          <textarea class="glass-textarea" 
+                                                    [value]="editFormState().comment"
+                                                    (input)="onEditFormCommentInput($event)"
+                                                    [placeholder]="ts.t('monitor.commentPlaceholder')"></textarea>
+                                        </div>
+
+                                        <div class="form-group">
+                                          <div class="evidence-toggle-row">
+                                            <label class="form-label flex-label">
+                                              <span class="material-icons">photo_camera</span> 
+                                              {{ ts.t('monitor.evidenceLabel') }}
+                                            </label>
+                                            <div class="evidence-switch">
+                                              <button type="button" class="switch-btn" 
+                                                      [class.active]="!editFormState().attachEvidence"
+                                                      (click)="setEditFormEvidence(false)">
+                                                {{ ts.t('monitor.no') }}
+                                              </button>
+                                              <button type="button" class="switch-btn" 
+                                                      [class.active]="editFormState().attachEvidence"
+                                                      (click)="setEditFormEvidence(true)">
+                                                {{ ts.t('monitor.yes') }}
+                                              </button>
+                                            </div>
+                                          </div>
+
+                                          @if (editFormState().attachEvidence) {
+                                            <div class="glass-file-uploader" (click)="triggerFileInput(scen.id)">
+                                              <input type="file" class="hidden-file-input" 
+                                                     [id]="'file-input-' + scen.id"
+                                                     (change)="onEvidenceFileSelected($event)" />
+                                              <span class="material-icons upload-icon">cloud_upload</span>
+                                              @if (editFormState().evidenceFileName) {
+                                                <p class="file-name-display">{{ editFormState().evidenceFileName }}</p>
+                                              } @else {
+                                                <p>{{ ts.t('monitor.fileUploaderPlaceholder') }}</p>
+                                              }
+                                            </div>
+                                          }
+                                        </div>
+
+                                        <div class="editor-actions">
+                                          <button type="button" class="btn-cancel-action" (click)="cancelScenarioEdit()">
+                                            {{ ts.t('monitor.cancel') }}
+                                          </button>
+                                          <button type="button" class="btn-submit-action" 
+                                                  [disabled]="editFormState().status === 'FAILED' && !editFormState().comment.trim()"
+                                                  (click)="saveScenarioEdit()">
+                                            {{ ts.t('monitor.confirmSubmit') }}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    }
+                                  </div>
+                                }
+                              }
+                            }
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+            </div>
+
+          </div>
+        } @else {
+          <!-- Details Placeholder -->
+          <div class="details-placeholder-box glassmorphic">
+            <div class="placeholder-content">
+              <div class="pulse-icon-box">
+                <span class="material-icons pulse-icon">visibility</span>
+              </div>
+              <h3>{{ ts.t('monitor.title') }}</h3>
+              <p>{{ ts.t('monitor.selectJob') }}</p>
+            </div>
+          </div>
+        }
+      </main>
+
+    </div>
+  </div>
+</div>

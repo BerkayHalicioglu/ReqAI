@@ -1,14 +1,22 @@
 <div class="app-layout">
   <aside class="app-sidebar">
-    <div class="sidebar-logo">
-      <span class="logo-icon">⚡</span>
+    <div class="sidebar-logo" routerLink="/" style="cursor: pointer;">
+      <span class="material-icons logo-icon">auto_awesome</span>
       <h2>ReqAI</h2>
     </div>
     
     <nav class="sidebar-nav">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
         <span class="material-icons">dashboard</span>
-        <span>Dashboard</span>
+        <span>{{ ts.t('common.dashboard') }}</span>
+      </a>
+      <a routerLink="/monitor" routerLinkActive="active" class="nav-item">
+        <span class="material-icons">visibility</span>
+        <span>{{ ts.t('common.monitor') }}</span>
+      </a>
+      <a routerLink="/analytics" routerLinkActive="active" class="nav-item">
+        <span class="material-icons">bar_chart</span>
+        <span>{{ ts.t('common.analytics') }}</span>
       </a>
     </nav>
     
@@ -24,6 +32,28 @@
   </aside>
 
   <main class="app-content">
+    <div class="app-topbar">
+      <div class="topbar-actions">
+        <!-- Theme Toggle Button with Sun/Moon Rising Animation -->
+        <button class="theme-toggle-btn" 
+                [class.is-dark]="themeService.isDark()"
+                (click)="themeService.toggleTheme()" 
+                [matTooltip]="themeService.isDark() ? (ts.currentLang() === 'tr' ? 'Açık Moda Geç' : 'Switch to Light Mode') : (ts.currentLang() === 'tr' ? 'Koyu Moda Geç' : 'Switch to Dark Mode')">
+          <div class="icon-stage">
+            <span class="material-icons sun-icon">light_mode</span>
+            <span class="material-icons moon-icon">dark_mode</span>
+          </div>
+        </button>
+
+        <!-- Language Switcher -->
+        <div class="lang-switcher">
+          <button class="lang-btn" [class.active]="ts.currentLang() === 'tr'" (click)="ts.setLanguage('tr')">TR</button>
+          <span class="lang-divider">|</span>
+          <button class="lang-btn" [class.active]="ts.currentLang() === 'en'" (click)="ts.setLanguage('en')">EN</button>
+        </div>
+      </div>
+    </div>
+    
     <router-outlet></router-outlet>
   </main>
 </div>

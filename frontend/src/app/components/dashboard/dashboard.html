@@ -2,8 +2,8 @@
   <!-- Header Section -->
   <header class="dashboard-header">
     <div class="header-title">
-      <h1>Dashboard</h1>
-      <p class="subtitle">Requirement Decomposition & AI Analysis Control Panel</p>
+      <h1>{{ ts.t('common.dashboard') }}</h1>
+      <p class="subtitle">{{ ts.t('dashboard.subtitle') }}</p>
     </div>
   </header>
 
@@ -12,7 +12,7 @@
     <mat-card class="kpi-card glassmorphic">
       <mat-card-content class="kpi-content">
         <div class="kpi-info">
-          <span class="kpi-label">Total Documents</span>
+          <span class="kpi-label">{{ ts.t('dashboard.kpiDocs') }}</span>
           <h2 class="kpi-value">{{ totalDocuments() }}</h2>
         </div>
         <div class="kpi-icon-wrapper blue">
@@ -24,7 +24,7 @@
     <mat-card class="kpi-card glassmorphic">
       <mat-card-content class="kpi-content">
         <div class="kpi-info">
-          <span class="kpi-label">Total Requirements</span>
+          <span class="kpi-label">{{ ts.t('dashboard.kpiReqs') }}</span>
           <h2 class="kpi-value">{{ totalRequirements() }}</h2>
         </div>
         <div class="kpi-icon-wrapper indigo">
@@ -36,7 +36,7 @@
     <mat-card class="kpi-card glassmorphic">
       <mat-card-content class="kpi-content">
         <div class="kpi-info">
-          <span class="kpi-label">Critical & High Priority</span>
+          <span class="kpi-label">{{ ts.t('dashboard.kpiCritical') }}</span>
           <h2 class="kpi-value">{{ criticalRequirements() }}</h2>
         </div>
         <div class="kpi-icon-wrapper red">
@@ -48,7 +48,7 @@
     <mat-card class="kpi-card glassmorphic">
       <mat-card-content class="kpi-content">
         <div class="kpi-info">
-          <span class="kpi-label">Derived Developer Tasks</span>
+          <span class="kpi-label">{{ ts.t('dashboard.kpiTasks') }}</span>
           <h2 class="kpi-value">{{ totalTasks() }}</h2>
         </div>
         <div class="kpi-icon-wrapper green">
@@ -57,17 +57,6 @@
       </mat-card-content>
     </mat-card>
   </section>
-
-  <!-- Error Banner -->
-  @if (errorMessage()) {
-    <div class="error-banner">
-      <span class="material-icons">error_outline</span>
-      <p>{{ errorMessage() }}</p>
-      <button mat-icon-button class="close-btn" (click)="errorMessage.set(null)">
-        <span class="material-icons">close</span>
-      </button>
-    </div>
-  }
 
   <!-- Main Card Section (Upload + Table) -->
   <div class="main-card-layout">
@@ -86,27 +75,27 @@
               @if (isUploading()) {
                 <mat-spinner diameter="40"></mat-spinner>
               } @else if (isAnalyzing()) {
-                <div class="brain-icon pulse">🧠</div>
+                <span class="material-icons brain-icon pulse">psychology</span>
               } @else {
                 <span class="material-icons upload-icon">cloud_upload</span>
               }
             </div>
 
             @if (isUploading()) {
-              <h3>Uploading Document...</h3>
-              <p>Saving document to database server.</p>
+              <h3>{{ ts.t('dashboard.uploading') }}</h3>
+              <p>{{ ts.t('dashboard.uploadingDesc') }}</p>
             } @else if (isAnalyzing()) {
-              <h3>AI Decomposing Requirements...</h3>
-              <p>Analyzing context and generating structured models.</p>
+              <h3>{{ ts.t('dashboard.analyzing') }}</h3>
+              <p>{{ ts.t('dashboard.analyzingDesc') }}</p>
               <mat-progress-bar mode="indeterminate" class="analysis-progress"></mat-progress-bar>
             } @else {
-              <h3>Upload Requirement Document</h3>
-              <p>Drag and drop a <strong>.txt</strong> file here, or browse files manually.</p>
+              <h3>{{ ts.t('dashboard.uploadTitle') }}</h3>
+              <p>{{ ts.t('dashboard.uploadDesc') }}</p>
               
               <button mat-flat-button color="primary" class="browse-btn" (click)="fileInput.click()">
-                Browse Files
+                {{ ts.t('dashboard.browseFiles') }}
               </button>
-              <input type="file" #fileInput accept=".txt" (change)="onFileSelected($event)" style="display: none;" />
+              <input type="file" #fileInput accept=".txt,.pdf,.docx" (change)="onFileSelected($event)" style="display: none;" />
             }
           </div>
         </div>
@@ -116,8 +105,10 @@
     <!-- Right: Analysis History Table -->
     <mat-card class="history-table-card glassmorphic">
       <mat-card-header class="table-header">
-        <mat-card-title>📋 Analysis History</mat-card-title>
-        <span class="table-subtitle">{{ documents().length }} Documents in Repository</span>
+        <mat-card-title>
+          <span class="material-icons header-icon">history</span> {{ ts.t('dashboard.historyTitle') }}
+        </mat-card-title>
+        <span class="table-subtitle">{{ documents().length }} {{ ts.t('dashboard.documentsCount') }}</span>
       </mat-card-header>
       
       <mat-card-content class="table-content-wrapper">
@@ -125,47 +116,109 @@
           <table class="modern-table">
             <thead>
               <tr>
-                <th>Document Name</th>
-                <th>Uploaded At</th>
-                <th>Decomposition Status</th>
-                <th style="text-align: right;">Action</th>
+                <th>{{ ts.t('dashboard.docName') }}</th>
+                <th>{{ ts.t('dashboard.uploadedAt') }}</th>
+                <th>{{ ts.t('dashboard.status') }}</th>
+                <th style="text-align: right;">{{ ts.t('dashboard.action') }}</th>
               </tr>
             </thead>
             <tbody>
               @for (doc of paginatedDocuments(); track doc.id) {
-                <tr class="table-row">
-                  <td class="filename-cell">
-                    <span class="material-icons file-lead-icon">description</span>
-                    <span class="file-name">{{ doc.filename }}</span>
+                <tr class="table-row" [class.editing-row]="editingDocId() === doc.id">
+                  <td>
+                    <div class="filename-cell">
+                      <span class="material-icons file-lead-icon">description</span>
+                      @if (editingDocId() === doc.id) {
+                        <div class="inline-rename-wrapper">
+                          <input 
+                            #renameInput
+                            type="text" 
+                            [value]="doc.filename" 
+                            (keydown.enter)="saveRename(doc.id, renameInput.value)" 
+                            (keydown.escape)="cancelRename()"
+                            class="inline-rename-input"
+                            autofocus
+                          />
+                          <button mat-icon-button class="inline-action-btn save" (click)="saveRename(doc.id, renameInput.value)" [attr.aria-label]="ts.t('common.save')">
+                            <span class="material-icons">check</span>
+                          </button>
+                          <button mat-icon-button class="inline-action-btn cancel" (click)="cancelRename()" [attr.aria-label]="ts.t('common.cancel')">
+                            <span class="material-icons">close</span>
+                          </button>
+                        </div>
+                      } @else {
+                        <span class="file-name" [title]="doc.filename">{{ doc.filename }}</span>
+                      }
+                    </div>
                   </td>
-                  <td class="date-cell">{{ doc.created_at | date:'dd MMM yyyy, HH:mm' }}</td>
+                  <td class="date-cell">{{ doc.uploaded_at | date:'dd MMM yyyy, HH:mm' }}</td>
                   <td>
                     <span class="status-indicator" [class]="doc.status.toLowerCase()">
                       <span class="indicator-dot"></span>
                       {{ doc.status }}
                     </span>
                   </td>
-                  <td style="text-align: right;">
-                    @if (doc.status === 'ANALYZED') {
-                      <a [routerLink]="['/document', doc.id]" mat-stroked-button color="primary" class="row-action-btn">
-                        View Results <span class="material-icons">arrow_forward</span>
-                      </a>
-                    } @else if (doc.status === 'ANALYZING') {
-                      <button mat-button disabled class="row-action-btn loading">
-                        <mat-spinner diameter="18" class="row-spinner"></mat-spinner> Decomposing...
-                      </button>
-                    } @else {
-                      <button mat-flat-button color="accent" class="row-action-btn" (click)="startAnalysis(doc.id)">
-                        Analyze Now
-                      </button>
-                    }
+                  <td style="text-align: right;" class="action-cell">
+                    <div class="row-actions" [class.managing]="activeManageId() === doc.id">
+                      @if (doc.status === 'ANALYZED') {
+                        <a [routerLink]="['/document', doc.id]" mat-stroked-button color="primary" class="row-action-btn">
+                          <span class="btn-text">{{ ts.t('dashboard.viewResults') }}</span> <span class="material-icons">arrow_forward</span>
+                        </a>
+                      } @else if (doc.status === 'ANALYZING') {
+                        <button mat-button disabled class="row-action-btn loading">
+                          <mat-spinner diameter="18" class="row-spinner"></mat-spinner>
+                          <span class="btn-text">{{ ts.t('dashboard.decomposing') }}</span>
+                        </button>
+                      } @else {
+                        <button mat-flat-button class="row-action-btn analyze-btn" (click)="startAnalysis(doc.id)">
+                          <span class="btn-text">{{ ts.t('dashboard.analyzeNow') }}</span> <span class="material-icons">play_arrow</span>
+                        </button>
+                      }
+
+                      <!-- Manage Actions Container with Micro-interactions -->
+                      <div class="manage-actions-container" [class.active]="activeManageId() === doc.id">
+                        <button 
+                          mat-icon-button 
+                          class="manage-toggle-btn" 
+                          (click)="toggleManage(doc.id)" 
+                          [matTooltip]="activeManageId() === doc.id ? ts.t('common.cancel') : ts.t('detail.editRequirement')"
+                          matTooltipPosition="above"
+                        >
+                          <span class="material-icons">{{ activeManageId() === doc.id ? 'close' : 'edit' }}</span>
+                        </button>
+
+                        <div class="manage-sub-buttons">
+                          <!-- Rename Button -->
+                          <button 
+                            mat-icon-button 
+                            class="sub-action-btn rename" 
+                            (click)="startRename(doc.id); toggleManage(null)" 
+                            [matTooltip]="ts.t('dashboard.renameBtn')"
+                            matTooltipPosition="above"
+                          >
+                            <span class="material-icons">drive_file_rename_outline</span>
+                          </button>
+
+                          <!-- Delete Button -->
+                          <button 
+                            mat-icon-button 
+                            class="sub-action-btn delete" 
+                            (click)="deleteDocument(doc.id); toggleManage(null)" 
+                            [matTooltip]="ts.t('dashboard.deleteBtn')"
+                            matTooltipPosition="above"
+                          >
+                            <span class="material-icons">delete_outline</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               } @empty {
                 <tr>
                   <td colspan="4" class="empty-table-state">
                     <span class="material-icons empty-icon">assignment_late</span>
-                    <p>No requirement documents analyzed yet. Drop a document on the left to begin.</p>
+                    <p>{{ ts.t('dashboard.emptyTable') }}</p>
                   </td>
                 </tr>
               }
@@ -199,4 +252,24 @@
       </mat-card-content>
     </mat-card>
   </div>
+
+  <!-- Custom Delete Confirmation Modal -->
+  @if (deleteConfirmId()) {
+    <div class="confirm-modal-overlay">
+      <div class="confirm-modal-card">
+        <span class="material-icons modal-warning-icon">warning_amber</span>
+        <h3>{{ ts.t('dashboard.deleteConfirmTitle') }}</h3>
+        <p>{{ ts.t('dashboard.deleteConfirm') }}</p>
+
+        <div class="modal-actions">
+          <button mat-button class="modal-btn cancel" (click)="cancelDelete()">
+            {{ ts.t('common.cancel') }}
+          </button>
+          <button mat-flat-button color="warn" class="modal-btn confirm" (click)="confirmDelete()">
+            {{ ts.t('dashboard.deleteBtn') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
