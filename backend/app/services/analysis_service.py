@@ -39,6 +39,7 @@ def run_analysis_background(document_id: str):
                     description=task_data["description"],
                     priority=task_data.get("priority", "MEDIUM"),
                     complexity=task_data.get("complexity", "MODERATE"),
+                    role=task_data.get("role", "DEVELOPER"),
                 )
                 db.add(task)
                 db.flush()

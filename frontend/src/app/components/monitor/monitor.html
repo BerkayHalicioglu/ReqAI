@@ -19,10 +19,10 @@
     </header>
 
     <!-- Main Container -->
-    <div class="monitor-layout">
+    <div class="monitor-layout" [class.jobs-collapsed]="isJobsListCollapsed()">
       
       <!-- LEFT PANEL: Jobs List -->
-      <aside class="jobs-panel">
+      <aside class="jobs-panel" [class.collapsed]="isJobsListCollapsed()">
         @if (isLoading()) {
           <div class="loading-state glassmorphic">
             <mat-spinner diameter="40"></mat-spinner>
@@ -124,8 +124,18 @@
                 </div>
               </div>
 
-              <!-- Compliance Circular Progress/Stat -->
-              <div class="compliance-gauge-circular">
+              <!-- Header Actions & Circular Progress -->
+              <div class="header-right-actions">
+                <button type="button" 
+                        class="btn-toggle-expand" 
+                        (click)="toggleJobsListCollapse()" 
+                        [title]="isJobsListCollapsed() ? (ts.currentLang() === 'tr' ? 'İş Listesini Göster' : 'Show Jobs List') : (ts.currentLang() === 'tr' ? 'Tam Ekran Görünüme Geç / Listeyi Gizle' : 'Expand Full Detail View')">
+                  <span class="material-icons">{{ isJobsListCollapsed() ? 'view_sidebar' : 'fullscreen' }}</span>
+                  <span class="expand-btn-text">{{ isJobsListCollapsed() ? (ts.currentLang() === 'tr' ? 'Listeyi Göster' : 'Show List') : (ts.currentLang() === 'tr' ? 'Genişlet' : 'Expand') }}</span>
+                </button>
+
+                <!-- Compliance Circular Progress/Stat -->
+                <div class="compliance-gauge-circular">
                 <svg class="progress-svg" viewBox="0 0 100 100">
                   <defs>
                     <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -147,6 +157,7 @@
                 </div>
               </div>
             </div>
+          </div>
 
             <!-- Scrollable Flow Sections -->
             <div class="details-scroll-content">

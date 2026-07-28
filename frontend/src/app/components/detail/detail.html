@@ -228,19 +228,38 @@
                   <!-- Alt İşler ve Görevler -->
                   <div class="tasks-section">
                     <div class="section-title-with-role">
-                      <h4><span class="material-icons section-icon">settings</span> {{ ts.t('detail.devTaskList') }}</h4>
-                      <span class="role-tag developer">
-                        <span class="material-icons">terminal</span> {{ ts.currentLang() === 'tr' ? 'Yazılımcı / Developer' : 'Developer' }}
-                      </span>
+                      <h4><span class="material-icons section-icon">task_alt</span> {{ ts.t('detail.taskList') }}</h4>
+                      
+                      <!-- Role Filter Pills -->
+                      <div class="role-filter-pills">
+                        <button class="role-pill" [class.active]="selectedRoleFilter() === 'ALL'" (click)="selectedRoleFilter.set('ALL')">
+                          {{ ts.t('detail.allRoles') }}
+                        </button>
+                        <button class="role-pill developer" [class.active]="selectedRoleFilter() === 'DEVELOPER'" (click)="selectedRoleFilter.set('DEVELOPER')">
+                          <span class="material-icons">terminal</span> Dev
+                        </button>
+                        <button class="role-pill qa" [class.active]="selectedRoleFilter() === 'QA'" (click)="selectedRoleFilter.set('QA')">
+                          <span class="material-icons">bug_report</span> QA
+                        </button>
+                        <button class="role-pill devops" [class.active]="selectedRoleFilter() === 'DEVOPS'" (click)="selectedRoleFilter.set('DEVOPS')">
+                          <span class="material-icons">cloud</span> DevOps
+                        </button>
+                        <button class="role-pill design" [class.active]="selectedRoleFilter() === 'DESIGN'" (click)="selectedRoleFilter.set('DESIGN')">
+                          <span class="material-icons">palette</span> Design
+                        </button>
+                      </div>
                     </div>
                     
-                    @for (task of req.tasks; track task.id) {
-                      <div class="developer-task-card">
+                    @for (task of getFilteredTasks(req.tasks); track task.id) {
+                      <div class="developer-task-card" [class]="(task.role || 'DEVELOPER').toLowerCase() + '-card'">
                         <div class="task-card-header">
                           <span class="task-headline">
                             <strong>Task {{ req.displayIndex }}.{{ task.displayIndex }}:</strong> {{ task.title }}
                           </span>
                           <div class="task-badges">
+                            <span class="role-tag" [class]="(task.role || 'DEVELOPER').toLowerCase()">
+                              <span class="material-icons">{{ getRoleIcon(task.role) }}</span> {{ getRoleLabel(task.role) }}
+                            </span>
                             <span class="badge priority-badge" [class]="task.priority.toLowerCase()">
                               {{ ts.t('detail.' + task.priority.toLowerCase()) }}
                             </span>

@@ -49,6 +49,13 @@ export class Monitor implements OnInit {
   // Selected document details
   protected readonly selectedJob = signal<any | null>(null);
 
+  // Toggle state to collapse left jobs list and expand detail view to full width
+  protected readonly isJobsListCollapsed = signal(false);
+
+  toggleJobsListCollapse(): void {
+    this.isJobsListCollapsed.set(!this.isJobsListCollapsed());
+  }
+
   // Local copy of test statuses for the selected document
   protected readonly currentTestStatuses = signal<Record<string, ScenarioState>>({});
 

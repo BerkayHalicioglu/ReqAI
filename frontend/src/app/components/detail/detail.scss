@@ -322,9 +322,16 @@ $glass-border: rgba(255, 255, 255, 0.5);
 .developer-task-card {
   background: #f8fafc;
   border: 1px solid $border-color;
+  border-left: 3px solid #64748b;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
+
+  &.developer-card { border-left-color: #2563eb; }
+  &.qa-card { border-left-color: #059669; }
+  &.devops-card { border-left-color: #c2410c; }
+  &.design-card { border-left-color: #db2777; }
+  &.analysis-card { border-left-color: #9333ea; }
 
   &:last-child {
     margin-bottom: 0;
@@ -1316,6 +1323,64 @@ $glass-border: rgba(255, 255, 255, 0.5);
     background: #ecfdf5;
     color: #059669;
     border: 1px solid rgba(5, 150, 105, 0.1);
+  }
+
+  &.devops {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid rgba(194, 65, 12, 0.1);
+  }
+
+  &.design {
+    background: #fdf2f8;
+    color: #db2777;
+    border: 1px solid rgba(219, 39, 119, 0.1);
+  }
+
+  &.analysis {
+    background: #faf5ff;
+    color: #9333ea;
+    border: 1px solid rgba(147, 51, 234, 0.1);
+  }
+}
+
+.role-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    .material-icons {
+      font-size: 13px;
+    }
+
+    &:hover {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    &.active {
+      background: #0f172a;
+      color: #ffffff;
+
+      &.developer { background: #2563eb; }
+      &.qa { background: #059669; }
+      &.devops { background: #c2410c; }
+      &.design { background: #db2777; }
+    }
   }
 }
 

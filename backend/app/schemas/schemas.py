@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
-from app.models.entities import PriorityLevel, ComplexityLevel, DocumentStatus, TestStatus
+from app.models.entities import PriorityLevel, ComplexityLevel, TaskRole, DocumentStatus, TestStatus
 
 
 # ---------- Test Scenario ----------
@@ -35,6 +35,7 @@ class TaskOut(BaseModel):
     description: str
     priority: PriorityLevel
     complexity: ComplexityLevel
+    role: TaskRole = TaskRole.DEVELOPER
     created_at: datetime
     test_scenarios: list[TestScenarioOut] = []
 
