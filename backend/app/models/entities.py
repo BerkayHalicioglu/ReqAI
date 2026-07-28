@@ -24,6 +24,15 @@ class ComplexityLevel(str, enum.Enum):
     COMPLEX = "COMPLEX"
 
 
+class TaskRole(str, enum.Enum):
+    DEVELOPER = "DEVELOPER"
+    QA = "QA"
+    DEVOPS = "DEVOPS"
+    DESIGN = "DESIGN"
+    ANALYSIS = "ANALYSIS"
+
+
+
 class DocumentStatus(str, enum.Enum):
     UPLOADED = "UPLOADED"
     PROCESSING = "PROCESSING"
@@ -78,6 +87,7 @@ class Task(Base):
     description = Column(Text, nullable=False)
     priority = Column(SqlEnum(PriorityLevel), default=PriorityLevel.MEDIUM, nullable=False)
     complexity = Column(SqlEnum(ComplexityLevel), default=ComplexityLevel.MODERATE, nullable=False)
+    role = Column(SqlEnum(TaskRole), default=TaskRole.DEVELOPER, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     requirement = relationship("Requirement", back_populates="tasks")

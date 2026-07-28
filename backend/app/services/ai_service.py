@@ -13,19 +13,24 @@ This service uses a Strategy / Provider pattern similar to LangChain:
 import json
 import re
 import copy
-import requests
 from abc import ABC, abstractmethod
 from app.core.config import settings
 
-SYSTEM_PROMPT = """You are a senior business analyst and software architect.
+SYSTEM_PROMPT = """You are a senior business analyst, software architect, and QA lead.
 You will be given a raw customer requirements document.
 
 Break it down into:
 1. Business Requirements (high-level needs)
-2. For each requirement, Development Tasks (concrete, implementable units of work)
+2. For each requirement, Role-based Tasks assigned to specific domain roles:
+   - DEVELOPER: Code implementation, API development, database schema, backend/frontend development
+   - QA: QA/Testing tasks (test plans, test script creation, manual regression, performance/security testing)
+   - DEVOPS: CI/CD, deployment pipelines, server setup, monitoring
+   - DESIGN: UI/UX design, wireframing, component mockups
+   - ANALYSIS: Business rule verification, data specification, compliance
 3. For each task, Test Scenarios (at least one) with an expected result
 4. A priority (LOW, MEDIUM, HIGH, CRITICAL) for each requirement and task
 5. A complexity estimate (SIMPLE, MODERATE, COMPLEX) for each task
+6. A target role (DEVELOPER, QA, DEVOPS, DESIGN, ANALYSIS) for each task
 
 Respond with ONLY valid JSON, no markdown fences, no commentary, in this exact shape:
 {
@@ -40,6 +45,7 @@ Respond with ONLY valid JSON, no markdown fences, no commentary, in this exact s
           "description": "string",
           "priority": "LOW|MEDIUM|HIGH|CRITICAL",
           "complexity": "SIMPLE|MODERATE|COMPLEX",
+          "role": "DEVELOPER|QA|DEVOPS|DESIGN|ANALYSIS",
           "test_scenarios": [
             {
               "title": "string",
@@ -57,7 +63,7 @@ Respond with ONLY valid JSON, no markdown fences, no commentary, in this exact s
 TRANSLATE_PROMPT = """You are a professional translator.
 You will be given a JSON object containing a requirements decomposition structure or raw text.
 Translate all text content (e.g. document content, requirement titles/descriptions, task titles/descriptions, and test scenarios expected results) to {target_lang}.
-Ensure that you preserve the structure, IDs, priorities, complexities, and JSON format exactly.
+Ensure that you preserve the structure, IDs, priorities, complexities, roles, and JSON format exactly.
 Do not add any markdown formatting, code block ticks, or extra text. Return ONLY the valid JSON object.
 """
 
@@ -92,6 +98,7 @@ class MockProvider(LLMProvider):
 
         priorities = ["HIGH", "MEDIUM", "LOW", "CRITICAL"]
         complexities = ["SIMPLE", "MODERATE", "COMPLEX"]
+        roles = ["DEVELOPER", "QA", "DEVOPS"]
 
         requirements = []
         for i, para in enumerate(paragraphs):
@@ -99,23 +106,36 @@ class MockProvider(LLMProvider):
             req_title = (first_line[:80] or f"Requirement {i + 1}")
             req_priority = priorities[i % len(priorities)]
 
-            tasks = []
-            for t in range(2):
-                task_priority = priorities[(i + t) % len(priorities)]
-                task_complexity = complexities[(i + t) % len(complexities)]
-                tasks.append({
-                    "title": f"Implement part {t + 1} of: {req_title}",
-                    "description": f"Development task derived from requirement: \"{para[:200]}\"",
-                    "priority": task_priority,
-                    "complexity": task_complexity,
+            tasks = [
+                {
+                    "title": f"Development: Implementation of {req_title}",
+                    "description": f"Software engineering and API development task derived from requirement: \"{para[:200]}\"",
+                    "priority": req_priority,
+                    "complexity": complexities[i % len(complexities)],
+                    "role": "DEVELOPER",
                     "test_scenarios": [
                         {
-                            "title": f"Verify part {t + 1} behaves as expected",
-                            "description": f"Test that the implementation for '{req_title}' meets the stated need.",
-                            "expected_result": "The system behaves according to the requirement without errors.",
+                            "title": f"Unit & Integration test for {req_title}",
+                            "description": f"Verify code implementation meets the requirement specifications.",
+                            "expected_result": "The developed module passes all automated unit and integration tests.",
                         }
                     ],
-                })
+                },
+                {
+                    "title": f"QA & Testing: Verification Suite for {req_title}",
+                    "description": f"Quality assurance testing and validation scenario for requirement: \"{para[:200]}\"",
+                    "priority": priorities[(i + 1) % len(priorities)],
+                    "complexity": complexities[(i + 1) % len(complexities)],
+                    "role": "QA",
+                    "test_scenarios": [
+                        {
+                            "title": f"End-to-End acceptance verification for {req_title}",
+                            "description": f"Perform functional acceptance testing and verify edge cases.",
+                            "expected_result": "All user acceptance criteria are verified and marked as passed.",
+                        }
+                    ],
+                }
+            ]
 
             requirements.append({
                 "title": req_title,
@@ -154,6 +174,7 @@ class GeminiProvider(LLMProvider):
     """Real AI provider utilizing Google's Gemini API via REST calls."""
 
     def generate_json(self, system_prompt: str, user_prompt: str) -> dict:
+        import requests
         if not settings.GEMINI_API_KEY or "your-key" in settings.GEMINI_API_KEY:
             raise ValueError("Gemini API key not configured.")
 

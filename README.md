@@ -34,16 +34,30 @@ The platform is built on a modern full-stack architecture:
 
 ---
 
-## 🚀 Running the Application
+## 🎯 Key Features
+- **Multi-Role Task Decomposition**: Automatically breaks requirements into domain-specific tasks for **Software Engineering (DEVELOPER)**, **Quality Assurance (QA)**, **DevOps / Infra (DEVOPS)**, **UI/UX Design (DESIGN)**, and **Business Analysis (ANALYSIS)**.
+- **Workflow Monitor & Dynamic Focus Mode**: Real-time acceptance criteria verification dashboard with automated sidebar collapse and full-width focus detail mode.
+- **Interactive Angular Dashboard**: Glassmorphic UI with priority filtering, complexity badges, PDF export, JIRA CSV export, and batch translations (TR / EN).
 
-### 1. Database (PostgreSQL)
+---
+
+## 🚀 Running the Application & Tests
+
+### 1. Running End-to-End (E2E) Test Suite
+You can execute the automated End-to-End integration test suite directly from the project root:
+```bash
+# Run full E2E test suite (Upload -> AI Analysis -> Multi-Role Tasks -> Scenario Updates -> Analytics)
+python e2e_test.py
+```
+
+### 2. Database (PostgreSQL)
 Ensure Docker is running, then start the database container:
 ```bash
 docker compose up -d
 ```
 *The database will run on `localhost:5432` with username `reqai_user` and database `reqai_db`.*
 
-### 2. Backend Server (FastAPI)
+### 3. Backend Server (FastAPI)
 Navigate to the `backend` folder, activate the virtual environment, and start Uvicorn:
 ```bash
 cd backend
@@ -55,9 +69,9 @@ uvicorn app.main:app --reload
 - **API Root**: `http://localhost:8000`
 - **Swagger Docs**: `http://localhost:8000/docs` (interactive UI to test APIs)
 
-*Note: You can toggle `USE_MOCK_AI=true/false` and specify your `OPENAI_API_KEY` in the `backend/.env` file.*
+*Note: You can toggle `USE_MOCK_AI=true/false` and specify your `OPENAI_API_KEY` or `GEMINI_API_KEY` in the `backend/.env` file.*
 
-### 3. Frontend Application (Angular)
+### 4. Frontend Application (Angular)
 Navigate to the `frontend` folder and start the dev server:
 ```bash
 cd frontend

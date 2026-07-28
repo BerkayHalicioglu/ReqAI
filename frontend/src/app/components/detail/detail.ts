@@ -38,6 +38,7 @@ export class Detail implements OnInit, OnDestroy {
   protected readonly selectedTestFilter = signal<'ALL' | 'PASSED' | 'FAILED'>('ALL');
   
   protected readonly selectedPriorityFilter = signal<string>('ALL');
+  protected readonly selectedRoleFilter = signal<string>('ALL');
 
   protected readonly editTitle = signal('');
   protected readonly editDescription = signal('');
@@ -566,6 +567,37 @@ export class Detail implements OnInit, OnDestroy {
     if (!doc || !doc.requirements) return 0;
     if (priority === 'ALL') return doc.requirements.length;
     return doc.requirements.filter((req: any) => req.priority === priority).length;
+  }
+
+  getRoleIcon(role: string): string {
+    const r = (role || 'DEVELOPER').toUpperCase();
+    switch (r) {
+      case 'DEVELOPER': return 'terminal';
+      case 'QA': return 'bug_report';
+      case 'DEVOPS': return 'cloud';
+      case 'DESIGN': return 'palette';
+      case 'ANALYSIS': return 'analytics';
+      default: return 'assignment_ind';
+    }
+  }
+
+  getRoleLabel(role: string): string {
+    const r = (role || 'DEVELOPER').toUpperCase();
+    switch (r) {
+      case 'DEVELOPER': return this.ts.t('detail.roleDeveloper');
+      case 'QA': return this.ts.t('detail.roleQa');
+      case 'DEVOPS': return this.ts.t('detail.roleDevops');
+      case 'DESIGN': return this.ts.t('detail.roleDesign');
+      case 'ANALYSIS': return this.ts.t('detail.roleAnalysis');
+      default: return role || 'Developer';
+    }
+  }
+
+  getFilteredTasks(tasks: any[]): any[] {
+    if (!tasks) return [];
+    const filter = this.selectedRoleFilter();
+    if (filter === 'ALL') return tasks;
+    return tasks.filter((t: any) => (t.role || 'DEVELOPER').toUpperCase() === filter);
   }
 
   // Resizable split layout panel width signal (percent for left panel, 20% - 75%)
